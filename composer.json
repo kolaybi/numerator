@@ -1,0 +1,47 @@
+{
+  "name": "kolaybi/numerator",
+  "description": "This package produces a sequential number",
+  "license": "MIT",
+  "type": "library",
+  "support": {
+    "issues": "https://github.com/kolaybi/numerator/issues",
+    "source": "https://github.com/kolaybi/numerator"
+  },
+  "require": {
+    "php": "^8.2",
+    "illuminate/support": "^10.39",
+    "illuminate/database": "^10.39"
+  },
+  "require-dev": {
+    "laravel/pint": "^1.13",
+    "phpunit/phpunit": "^10.5",
+    "orchestra/testbench": "^8.19"
+  },
+  "autoload": {
+    "psr-4": {
+      "KolayBi\\Numerator\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "KolayBi\\Numerator\\Tests\\": "tests/"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config": {
+    "sort-packages": true
+  },
+  "scripts": {
+    "lint": "pint -v",
+    "test:lint": "pint --test -v",
+    "test:unit:phpunit": [
+      "@putenv XDEBUG_MODE=coverage",
+      "phpunit --colors=always"
+    ],
+    "test": [
+      "@test:lint",
+      "@test:unit:phpunit"
+    ]
+  }
+}
