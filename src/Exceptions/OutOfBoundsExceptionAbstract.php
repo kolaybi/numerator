@@ -4,7 +4,7 @@ namespace KolayBi\Numerator\Exceptions;
 
 use Illuminate\Support\Facades\Lang;
 
-class OutOfBoundsException extends NumeratorException
+class OutOfBoundsExceptionAbstract extends AbstractNumeratorException
 {
     public function __construct()
     {

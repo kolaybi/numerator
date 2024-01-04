@@ -4,7 +4,7 @@ namespace KolayBi\Numerator\Services;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
-use KolayBi\Numerator\Exceptions\OutOfBoundsException;
+use KolayBi\Numerator\Exceptions\OutOfBoundsExceptionAbstract;
 use KolayBi\Numerator\Models\NumeratorProfile;
 use KolayBi\Numerator\Models\NumeratorType;
 use KolayBi\Numerator\Utils\Formatter;
@@ -34,7 +34,7 @@ class NumeratorProfileService
     }
 
     /**
-     * @throws OutOfBoundsException
+     * @throws OutOfBoundsExceptionAbstract
      */
     public function updateNumeratorProfile(string $id, array $data): NumeratorProfile
     {
@@ -42,7 +42,7 @@ class NumeratorProfileService
 
         $start = Arr::get($data, 'start');
         if (!$this->isWithinInterval($profile->type, $start)) {
-            throw new OutOfBoundsException();
+            throw new OutOfBoundsExceptionAbstract();
         }
 
         $data = Arr::only($data, ['prefix', 'format', 'start']);
@@ -56,7 +56,7 @@ class NumeratorProfileService
     }
 
     /**
-     * @throws OutOfBoundsException
+     * @throws OutOfBoundsExceptionAbstract
      */
     public function advanceCounter(NumeratorProfile $profile, int $number): void
     {
@@ -68,7 +68,8 @@ class NumeratorProfileService
     {
         $tenantIdColumn = config('numerator.database.tenant_id_column');
 
-        NumeratorProfile::all($tenantIdColumn)
+        NumeratorProfile::withoutGlobalScopes()
+            ->all($tenantIdColumn)
             ->unique($tenantIdColumn)
             ->each(fn($profile) => $this->createNumeratorProfile($profile->$tenantIdColumn, $data));
     }
@@ -114,7 +115,7 @@ class NumeratorProfileService
     }
 
     /**
-     * @throws OutOfBoundsException
+     * @throws OutOfBoundsExceptionAbstract
      */
     private function getNextAvailableNumber(NumeratorProfile $profile, int $number): int
     {
@@ -130,6 +131,6 @@ class NumeratorProfileService
             return $number;
         }
 
-        throw new OutOfBoundsException();
+        throw new OutOfBoundsExceptionAbstract();
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Arr;
 use KolayBi\Numerator\Enums\NumeratorFormatVariable;
+use KolayBi\Numerator\Traits\TenantIdScopeTrait;
 use KolayBi\Numerator\Utils\Formatter;
 
 /**
@@ -27,6 +28,7 @@ use KolayBi\Numerator\Utils\Formatter;
 class NumeratorProfile extends Model
 {
     use HasUlids;
+    use TenantIdScopeTrait;
 
     protected $table = 'numerator_profiles';
 

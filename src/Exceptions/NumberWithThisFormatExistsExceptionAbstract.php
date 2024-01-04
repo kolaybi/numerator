@@ -4,7 +4,7 @@ namespace KolayBi\Numerator\Exceptions;
 
 use Illuminate\Support\Facades\Lang;
 
-class NumberWithThisFormatExistsException extends NumeratorException
+class NumberWithThisFormatExistsExceptionAbstract extends AbstractNumeratorException
 {
     public function __construct()
     {
