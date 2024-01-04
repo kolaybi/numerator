@@ -9,8 +9,9 @@
   },
   "require": {
     "php": "^8.2",
-    "illuminate/support": "^10.39",
-    "illuminate/database": "^10.39"
+    "illuminate/console": "^10.39",
+    "illuminate/database": "^10.39",
+    "illuminate/support": "^10.39"
   },
   "require-dev": {
     "laravel/pint": "^1.13",

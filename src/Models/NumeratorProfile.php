@@ -8,17 +8,19 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Arr;
 use KolayBi\Numerator\Enums\NumeratorFormatVariable;
+use KolayBi\Numerator\Utils\Formatter;
 
 /**
  * @property string $id
- * @property string $tenant_id
  * @property string $type_id
  * @property string $prefix
  * @property string $format
  * @property int    $start
  * @property int    $counter
  *
+ * @property-read string                        $formattedNumber
  * @property-read NumeratorType                 $type
  * @property-read Collection<NumeratorSequence> $sequences
  */
@@ -34,8 +36,12 @@ class NumeratorProfile extends Model
 
     public function formattedNumber(): Attribute
     {
-        return Attribute::make(
-            get: fn(mixed $value, array $attributes) => NumberFormatter::format($this, $this->counter),
+        return new Attribute(
+            get: fn(mixed $value, array $attributes) => Formatter::format(
+                Arr::get($attributes, 'format'),
+                Arr::get($attributes, 'counter'),
+                Arr::get($attributes, 'prefix'),
+            ),
         );
     }
 
