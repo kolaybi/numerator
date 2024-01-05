@@ -34,16 +34,22 @@
     "sort-packages": true
   },
   "scripts": {
-    "lint": "pint -v",
-    "test:lint": "pint --test -v",
+    "pint": "pint -v",
+    "test:pint": "pint --test -v",
     "test:unit:phpunit": [
       "@putenv XDEBUG_MODE=coverage",
       "phpunit --colors=always"
     ],
     "test": [
-      "@test:lint",
+      "@test:pint",
       "@test:unit:phpunit"
-    ],
-    "pint": "pint --dirty"
+    ]
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "KolayBi\\Numerator\\NumeratorServiceProvider"
+      ]
+    }
   }
 }
