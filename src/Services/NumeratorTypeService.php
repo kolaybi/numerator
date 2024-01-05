@@ -45,9 +45,11 @@ class NumeratorTypeService
         return $type->refresh();
     }
 
-    public function deleteNumeratorType(string $id): void
+    public function deleteNumeratorType(NumeratorType|string $numeratorType): void
     {
-        $type = $this->findNumeratorType($id, lock: true);
+        $type = $this->findNumeratorType($numeratorType, lock: true);
+
+        $this->deleteNumeratorProfiles($type);
 
         $type->delete();
     }
@@ -84,6 +86,15 @@ class NumeratorTypeService
                 'start'   => $numeratorType->min,
                 'counter' => $numeratorType->min,
             ]);
+        }
+    }
+
+    private function deleteNumeratorProfiles(NumeratorType $numeratorType): void
+    {
+        $numeratorProfileService = new NumeratorProfileService();
+
+        foreach ($numeratorType->profiles as $profile) {
+            $numeratorProfileService->deleteNumeratorProfile($profile);
         }
     }
 }
