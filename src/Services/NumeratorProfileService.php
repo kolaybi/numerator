@@ -55,6 +55,15 @@ class NumeratorProfileService
         return $profile->refresh();
     }
 
+    public function deleteNumeratorProfile(NumeratorProfile|string $profile): void
+    {
+        $profile = $this->findNumeratorProfile($profile, lock: true);
+
+        $this->deleteNumeratorSequences($profile);
+
+        $profile->delete();
+    }
+
     /**
      * @throws OutOfBoundsExceptionAbstract
      */
@@ -132,5 +141,14 @@ class NumeratorProfileService
         }
 
         throw new OutOfBoundsExceptionAbstract();
+    }
+
+    private function deleteNumeratorSequences(NumeratorProfile $numeratorProfile): void
+    {
+        $numeratorSequenceService = new NumeratorSequenceService();
+
+        foreach ($numeratorProfile->sequences as $sequence) {
+            $numeratorSequenceService->deleteNumeratorSequence($sequence);
+        }
     }
 }
