@@ -14,9 +14,13 @@ class NumeratorProfileService
     /**
      * @return Collection<NumeratorProfile>
      */
-    public function getNumeratorProfiles(): Collection
+    public function getNumeratorProfiles(array $relations = []): Collection
     {
-        return NumeratorProfile::latest()->get();
+        $profile = NumeratorProfile::latest()->get();
+
+        $profile->load($relations);
+
+        return $profile;
     }
 
     public function getNumeratorProfile(string $id, array $relations = []): NumeratorProfile
