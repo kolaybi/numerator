@@ -10,6 +10,7 @@ class NumeratorServiceProvider extends ServiceProvider
     {
         $this->bootConfig();
         $this->bootMigrations();
+        $this->bootTranslations();
     }
 
     public function register(): void
@@ -17,19 +18,28 @@ class NumeratorServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../config/numerator.php', 'numerator');
     }
 
+    private function bootConfig(): void
+    {
+        $this->publishes([
+            __DIR__ . '/../config/numerator.php' => $this->app->configPath('numerator.php'),
+        ], 'numerator-config');
+    }
+
     private function bootMigrations(): void
     {
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         $this->publishes([
-            __DIR__ . '/../database/migrations' => database_path('migrations'),
+            __DIR__ . '/../database/migrations' => $this->app->databasePath('migrations'),
         ], 'numerator-migrations');
     }
 
-    private function bootConfig(): void
+    private function bootTranslations(): void
     {
+        $this->loadTranslationsFrom(__DIR__ . '/../lang', 'numerator');
+
         $this->publishes([
-            __DIR__ . '/../config/numerator.php' => config_path('numerator.php'),
-        ], 'numerator-config');
+            __DIR__ . '/../lang' => $this->app->langPath('vendor/numerator'),
+        ], 'numerator-lang');
     }
 }

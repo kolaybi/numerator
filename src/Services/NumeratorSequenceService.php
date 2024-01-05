@@ -2,15 +2,15 @@
 
 namespace KolayBi\Numerator\Services;
 
-use KolayBi\Numerator\Exceptions\NumberWithThisFormatExistsExceptionAbstract;
-use KolayBi\Numerator\Exceptions\OutOfBoundsExceptionAbstract;
+use KolayBi\Numerator\Exceptions\NumberWithThisFormatExistsException;
+use KolayBi\Numerator\Exceptions\OutOfBoundsException;
 use KolayBi\Numerator\Models\NumeratorSequence;
 
 class NumeratorSequenceService
 {
     /**
-     * @throws NumberWithThisFormatExistsExceptionAbstract
-     * @throws OutOfBoundsExceptionAbstract
+     * @throws NumberWithThisFormatExistsException
+     * @throws OutOfBoundsException
      */
     public function createNumeratorSequence(string $numeratorType, string $formattedNumber): NumeratorSequence
     {
@@ -21,11 +21,11 @@ class NumeratorSequenceService
             is_numeric($formattedNumber)
             && !$numeratorProfileService->isWithinInterval($profile->type, $formattedNumber)
         ) {
-            throw new OutOfBoundsExceptionAbstract();
+            throw new OutOfBoundsException();
         }
 
         if ($numeratorProfileService->hasSequence($profile, $formattedNumber)) {
-            throw new NumberWithThisFormatExistsExceptionAbstract();
+            throw new NumberWithThisFormatExistsException();
         }
 
         /** @var NumeratorSequence $sequence */

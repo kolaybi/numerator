@@ -4,7 +4,7 @@ namespace KolayBi\Numerator\Services;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
-use KolayBi\Numerator\Exceptions\OutOfBoundsExceptionAbstract;
+use KolayBi\Numerator\Exceptions\OutOfBoundsException;
 use KolayBi\Numerator\Models\NumeratorProfile;
 use KolayBi\Numerator\Models\NumeratorType;
 use KolayBi\Numerator\Scopes\TenantIdScope;
@@ -39,7 +39,7 @@ class NumeratorProfileService
     }
 
     /**
-     * @throws OutOfBoundsExceptionAbstract
+     * @throws OutOfBoundsException
      */
     public function updateNumeratorProfile(string $id, array $data): NumeratorProfile
     {
@@ -47,7 +47,7 @@ class NumeratorProfileService
 
         $start = Arr::get($data, 'start');
         if (!$this->isWithinInterval($profile->type, $start)) {
-            throw new OutOfBoundsExceptionAbstract();
+            throw new OutOfBoundsException();
         }
 
         $data = Arr::only($data, ['prefix', 'format', 'start']);
@@ -70,7 +70,7 @@ class NumeratorProfileService
     }
 
     /**
-     * @throws OutOfBoundsExceptionAbstract
+     * @throws OutOfBoundsException
      */
     public function advanceCounter(NumeratorProfile $profile, int $number): void
     {
@@ -129,7 +129,7 @@ class NumeratorProfileService
     }
 
     /**
-     * @throws OutOfBoundsExceptionAbstract
+     * @throws OutOfBoundsException
      */
     private function getNextAvailableNumber(NumeratorProfile $profile, int $number): int
     {
@@ -145,7 +145,7 @@ class NumeratorProfileService
             return $number;
         }
 
-        throw new OutOfBoundsExceptionAbstract();
+        throw new OutOfBoundsException();
     }
 
     private function deleteNumeratorSequences(NumeratorProfile $numeratorProfile): void
