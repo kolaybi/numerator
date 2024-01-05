@@ -43,4 +43,24 @@ class NumeratorSequenceService
 
         return $sequence;
     }
+
+    public function deleteNumeratorSequence(NumeratorSequence|string $sequence): void
+    {
+        $sequence = $this->findNumeratorSequence($sequence, lock: true);
+
+        $sequence->delete();
+    }
+
+    public function findNumeratorSequence(NumeratorSequence|string $sequence, ?bool $lock = null): NumeratorSequence
+    {
+        if (is_string($sequence)) {
+            return NumeratorSequence::lock($lock)->findOrFail($sequence);
+        }
+
+        if ($sequence instanceof NumeratorSequence && $lock) {
+            return NumeratorSequence::lock($lock)->findOrFail($sequence->id);
+        }
+
+        return $sequence;
+    }
 }
