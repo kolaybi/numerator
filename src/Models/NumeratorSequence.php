@@ -20,6 +20,8 @@ class NumeratorSequence extends Model
 
     protected $table = 'numerator_sequences';
 
+    protected $guarded = [];
+
     public function profile(): BelongsTo
     {
         return $this->belongsTo(NumeratorProfile::class, 'profile_id', 'id');

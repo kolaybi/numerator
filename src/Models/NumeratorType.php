@@ -22,6 +22,8 @@ class NumeratorType extends Model
 
     protected $table = 'numerator_types';
 
+    protected $guarded = [];
+
     public function min(): Attribute
     {
         return Attribute::make(

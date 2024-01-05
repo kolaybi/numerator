@@ -36,6 +36,8 @@ class NumeratorProfile extends Model
         'format' => NumeratorFormatVariable::NUMBER->value,
     ];
 
+    protected $guarded = [];
+
     public function formattedNumber(): Attribute
     {
         return new Attribute(
