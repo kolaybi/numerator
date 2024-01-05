@@ -7,6 +7,7 @@ use Illuminate\Support\Arr;
 use KolayBi\Numerator\Exceptions\OutOfBoundsExceptionAbstract;
 use KolayBi\Numerator\Models\NumeratorProfile;
 use KolayBi\Numerator\Models\NumeratorType;
+use KolayBi\Numerator\Scopes\TenantIdScope;
 use KolayBi\Numerator\Utils\Formatter;
 
 class NumeratorProfileService
@@ -28,7 +29,7 @@ class NumeratorProfileService
         return $this->findNumeratorProfile($id)->load($relations);
     }
 
-    public function createNumeratorProfile(string $tenantId, array $data): NumeratorType
+    public function createNumeratorProfile(string $tenantId, array $data): NumeratorProfile
     {
         $data = array_merge($data, [
             config('numerator.database.tenant_id_column') => $tenantId,
@@ -81,8 +82,8 @@ class NumeratorProfileService
     {
         $tenantIdColumn = config('numerator.database.tenant_id_column');
 
-        NumeratorProfile::withoutGlobalScopes()
-            ->all($tenantIdColumn)
+        NumeratorProfile::withoutGlobalScope(TenantIdScope::class)
+            ->get($tenantIdColumn)
             ->unique($tenantIdColumn)
             ->each(fn($profile) => $this->createNumeratorProfile($profile->$tenantIdColumn, $data));
     }
