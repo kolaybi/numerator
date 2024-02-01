@@ -11,8 +11,9 @@ return new class () extends Migration {
             $table->ulid('id')->primary();
             $table->timestamps();
             $table->softDeletes();
+            $table->string('model_type');
+            $table->ulid('model_id');
             $table->ulid('profile_id');
-            $table->unsignedBigInteger('number');
             $table->string('formatted_number');
 
             $table->index(['profile_id']);

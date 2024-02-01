@@ -8,8 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property string $id
+ * @property string $model_type
+ * @property string $model_id
  * @property string $profile_id
- * @property int    $number
  * @property string $formatted_number
  *
  * @property-read NumeratorProfile $profile
