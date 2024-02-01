@@ -2,6 +2,7 @@
 
 namespace KolayBi\Numerator\Services;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use KolayBi\Numerator\Exceptions\OutOfBoundsException;
@@ -116,9 +117,10 @@ class NumeratorProfileService
         return $this->findNumeratorProfileByType($type);
     }
 
-    public function hasSequence(NumeratorProfile $profile, string $formattedNumber): bool
+    public function hasSequence(NumeratorProfile $profile, string $formattedNumber, ?string $modelId = null): bool
     {
         return $profile->sequences
+            ->when(!is_null($modelId), fn(Builder $builder) => $builder->where('model_id', '<>', $modelId))
             ->where('formatted_number', '=', $formattedNumber)
             ->isNotEmpty();
     }

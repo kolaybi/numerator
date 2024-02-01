@@ -12,7 +12,7 @@ class NumeratorSequenceService
      * @throws NumberWithThisFormatExistsException
      * @throws OutOfBoundsException
      */
-    public function createNumeratorSequence(string $numeratorType, string $formattedNumber): NumeratorSequence
+    public function createNumeratorSequence(string $numeratorType, string $modelType, string $modelId, string $formattedNumber): NumeratorSequence
     {
         $numeratorProfileService = new NumeratorProfileService();
         $profile = $numeratorProfileService->findNumeratorProfileByType($numeratorType, lock: true);
@@ -24,21 +24,22 @@ class NumeratorSequenceService
             throw new OutOfBoundsException();
         }
 
-        if ($numeratorProfileService->hasSequence($profile, $formattedNumber)) {
+        if ($numeratorProfileService->hasSequence($profile, $formattedNumber, $modelId)) {
             throw new NumberWithThisFormatExistsException();
         }
 
         /** @var NumeratorSequence $sequence */
         $sequence = NumeratorSequence::create(
             [
+                'model_type'       => $modelType,
+                'model_id'         => $modelId,
                 'profile_id'       => $profile->id,
-                'number'           => $profile->counter,
                 'formatted_number' => $formattedNumber,
             ],
         );
 
         if ($profile->formattedNumber === $formattedNumber) {
-            $numeratorProfileService->advanceCounter($profile, ++$sequence->number);
+            $numeratorProfileService->advanceCounter($profile, ++$profile->counter);
         }
 
         return $sequence;
