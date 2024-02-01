@@ -11,7 +11,7 @@ return new class () extends Migration {
             $table->ulid('id')->primary();
             $table->timestamps();
             $table->softDeletes();
-            $table->ulid('name');
+            $table->string('name');
             $table->unsignedBigInteger('min')->nullable();
             $table->unsignedBigInteger('max')->nullable();
 

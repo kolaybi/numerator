@@ -17,7 +17,7 @@ return new class () extends Migration {
             $table->timestamps();
             $table->softDeletes();
             $table->ulid($tenantIdColumn);
-            $table->string('type_id');
+            $table->ulid('type_id');
             $table->string('prefix', $prefixColumnLength)->nullable();
             $table->string('format')->default(NumeratorFormatVariable::NUMBER->value);
             $table->unsignedBigInteger('start');
