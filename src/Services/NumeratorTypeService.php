@@ -36,9 +36,9 @@ class NumeratorTypeService
         return $numeratorType;
     }
 
-    public function updateNumeratorType(string $id, array $data): NumeratorType
+    public function updateNumeratorType(NumeratorType|string $numeratorType, array $data): NumeratorType
     {
-        $type = $this->findNumeratorType($id, lock: true);
+        $type = $this->findNumeratorType($numeratorType, lock: true);
 
         $type->update($data);
 
