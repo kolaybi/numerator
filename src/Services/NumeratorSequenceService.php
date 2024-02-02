@@ -2,6 +2,7 @@
 
 namespace KolayBi\Numerator\Services;
 
+use Carbon\Carbon;
 use KolayBi\Numerator\Exceptions\NumberWithThisFormatExistsException;
 use KolayBi\Numerator\Exceptions\OutOfBoundsException;
 use KolayBi\Numerator\Models\NumeratorSequence;
@@ -29,12 +30,15 @@ class NumeratorSequenceService
         }
 
         /** @var NumeratorSequence $sequence */
-        $sequence = NumeratorSequence::create(
+        $sequence = NumeratorSequence::updateOrCreate(
             [
                 'model_type'       => $modelType,
                 'model_id'         => $modelId,
                 'profile_id'       => $profile->id,
                 'formatted_number' => $formattedNumber,
+            ],
+            [
+                'updated_at' => Carbon::now(),
             ],
         );
 
