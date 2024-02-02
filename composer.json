@@ -14,13 +14,15 @@
     "illuminate/support": "^10.39"
   },
   "require-dev": {
+    "laravel/legacy-factories": "^1.4",
     "laravel/pint": "^1.13",
-    "phpunit/phpunit": "^10.5",
-    "orchestra/testbench": "^8.19"
+    "orchestra/testbench": "^8.19",
+    "phpunit/phpunit": "^10.5"
   },
   "autoload": {
     "psr-4": {
-      "KolayBi\\Numerator\\": "src/"
+      "KolayBi\\Numerator\\": "src/",
+      "Database\\Factories\\": "database/factories/"
     }
   },
   "autoload-dev": {
