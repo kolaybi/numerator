@@ -2,7 +2,6 @@
 
 namespace KolayBi\Numerator\Services;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use KolayBi\Numerator\Exceptions\OutOfBoundsException;
@@ -42,17 +41,17 @@ class NumeratorProfileService
     /**
      * @throws OutOfBoundsException
      */
-    public function updateNumeratorProfile(string $id, array $data): NumeratorProfile
+    public function updateNumeratorProfile(NumeratorProfile|string $profile, array $data): NumeratorProfile
     {
-        $profile = $this->findNumeratorProfile($id, lock: true);
-
-        $start = Arr::get($data, 'start');
-        if (!$this->isWithinInterval($profile->type, $start)) {
-            throw new OutOfBoundsException();
-        }
+        $profile = $this->findNumeratorProfile($profile, lock: true);
 
         $data = Arr::only($data, ['prefix', 'format', 'start']);
-        if (!empty($start)) {
+
+        if ($start = Arr::get($data, 'start')) {
+            if (!$this->isWithinInterval($profile->type, $start)) {
+                throw new OutOfBoundsException();
+            }
+
             Arr::set($data, 'counter', $this->getNextAvailableNumber($profile, $start));
         }
 
@@ -120,7 +119,7 @@ class NumeratorProfileService
     public function hasSequence(NumeratorProfile $profile, string $formattedNumber, ?string $modelId = null): bool
     {
         return $profile->sequences
-            ->when(!is_null($modelId), fn(Builder $builder) => $builder->where('model_id', '<>', $modelId))
+            ->when(!is_null($modelId), fn(Collection $builder) => $builder->where('model_id', '<>', $modelId))
             ->where('formatted_number', '=', $formattedNumber)
             ->isNotEmpty();
     }
