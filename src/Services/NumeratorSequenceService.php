@@ -25,7 +25,7 @@ class NumeratorSequenceService
             throw new OutOfBoundsException();
         }
 
-        if ($numeratorProfileService->hasSequence($profile, $formattedNumber, $modelId)) {
+        if ($numeratorProfileService->hasSequence($profile, $formattedNumber, excludedModelId: $modelId)) {
             throw new NumberWithThisFormatExistsException();
         }
 

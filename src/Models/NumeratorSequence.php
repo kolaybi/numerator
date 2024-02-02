@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property string $id
+ * @property string $profile_id
  * @property string $model_type
  * @property string $model_id
- * @property string $profile_id
  * @property string $formatted_number
  *
  * @property-read NumeratorProfile $profile

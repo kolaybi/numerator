@@ -76,7 +76,7 @@ class NumeratorTypeServiceTest extends TestCase
     }
 
     #[Test]
-    public function testItCanCreateUpdateNumeratorType(): void
+    public function testItCanUpdateNumeratorType(): void
     {
         $numeratorType = NumeratorTypeFactory::new()->createOne();
 
@@ -91,7 +91,7 @@ class NumeratorTypeServiceTest extends TestCase
     }
 
     #[Test]
-    public function testItCanDeleteANumeratorType(): void
+    public function testItCanDeleteNumeratorType(): void
     {
         $numeratorType = NumeratorTypeFactory::new()->createOne();
 
@@ -111,16 +111,6 @@ class NumeratorTypeServiceTest extends TestCase
     }
 
     #[Test]
-    public function testItCanFindNumeratorTypeByName(): void
-    {
-        $numeratorType = NumeratorTypeFactory::new()->createOne();
-
-        $result = $this->numeratorTypeService->findNumeratorTypeByName($numeratorType->name);
-
-        $this->assertTrue($result->is($numeratorType));
-    }
-
-    #[Test]
     public function testItCanFindNumeratorType(): void
     {
         $numeratorType = NumeratorTypeFactory::new()->createOne();
@@ -136,6 +126,16 @@ class NumeratorTypeServiceTest extends TestCase
         $numeratorType = NumeratorTypeFactory::new()->createOne();
 
         $result = $this->numeratorTypeService->findNumeratorType($numeratorType, lock: true);
+
+        $this->assertTrue($result->is($numeratorType));
+    }
+
+    #[Test]
+    public function testItCanFindNumeratorTypeByName(): void
+    {
+        $numeratorType = NumeratorTypeFactory::new()->createOne();
+
+        $result = $this->numeratorTypeService->findNumeratorTypeByName($numeratorType->name);
 
         $this->assertTrue($result->is($numeratorType));
     }

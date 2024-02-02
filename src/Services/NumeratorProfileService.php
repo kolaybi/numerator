@@ -116,10 +116,10 @@ class NumeratorProfileService
         return $this->findNumeratorProfileByType($type);
     }
 
-    public function hasSequence(NumeratorProfile $profile, string $formattedNumber, ?string $modelId = null): bool
+    public function hasSequence(NumeratorProfile $profile, string $formattedNumber, ?string $excludedModelId = null): bool
     {
         return $profile->sequences
-            ->when(!is_null($modelId), fn(Collection $builder) => $builder->where('model_id', '<>', $modelId))
+            ->when(!is_null($excludedModelId), fn(Collection $builder) => $builder->where('model_id', '<>', $excludedModelId))
             ->where('formatted_number', '=', $formattedNumber)
             ->isNotEmpty();
     }

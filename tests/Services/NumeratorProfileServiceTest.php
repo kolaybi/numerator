@@ -73,7 +73,7 @@ class NumeratorProfileServiceTest extends TestCase
      * @throws OutOfBoundsException
      */
     #[Test]
-    public function testItCanUpdateNumeratorProfileExceptForStart(): void
+    public function testItCanUpdateNumeratorProfileExceptForStartValue(): void
     {
         $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
 
@@ -110,7 +110,7 @@ class NumeratorProfileServiceTest extends TestCase
      * @throws OutOfBoundsException
      */
     #[Test]
-    public function testItCanUpdateStartValueOfTheNumeratorProfileAndUpdateCounter(): void
+    public function testItCanUpdateStartValueOfTheNumeratorProfileAndAdvanceCounter(): void
     {
         $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
         NumeratorSequenceFactory::new()
@@ -138,7 +138,7 @@ class NumeratorProfileServiceTest extends TestCase
      * @throws OutOfBoundsException
      */
     #[Test]
-    public function testItCanThrowsOutOfBoundsExceptionForMinValueWhileUpdating(): void
+    public function testItThrowsOutOfBoundsExceptionForInvalidMinValueWhileUpdating(): void
     {
         $numeratorType = NumeratorTypeFactory::new()->createOne([
             'min' => 10,
@@ -158,7 +158,7 @@ class NumeratorProfileServiceTest extends TestCase
      * @throws OutOfBoundsException
      */
     #[Test]
-    public function testItCanThrowsOutOfBoundsExceptionForMaxValueWhileUpdating(): void
+    public function testItThrowsOutOfBoundsExceptionForInvalidMaxValueWhileUpdating(): void
     {
         $numeratorType = NumeratorTypeFactory::new()->createOne([
             'max' => 10,
@@ -208,7 +208,7 @@ class NumeratorProfileServiceTest extends TestCase
      * @throws OutOfBoundsException
      */
     #[Test]
-    public function testItCanThrowsOutOfBoundsExceptionWhileAdvanceCounter(): void
+    public function testItThrowsOutOfBoundsExceptionForExceedingValuesWhileAdvancingCounter(): void
     {
         $numeratorType = NumeratorTypeFactory::new()->createOne([
             'max' => 10,
@@ -289,7 +289,7 @@ class NumeratorProfileServiceTest extends TestCase
     }
 
     #[Test]
-    public function testItCanHasSequence(): void
+    public function testHasSequenceReturnsTrueWhenASequenceExists(): void
     {
         $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
         NumeratorSequenceFactory::new()
@@ -304,7 +304,7 @@ class NumeratorProfileServiceTest extends TestCase
     }
 
     #[Test]
-    public function testItCanHasNotSequence(): void
+    public function testHasSequenceReturnsFalseWhenASequenceDoesNotExist(): void
     {
         $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
 
@@ -314,7 +314,7 @@ class NumeratorProfileServiceTest extends TestCase
     }
 
     #[Test]
-    public function testItCanHasSequenceWithModelId(): void
+    public function testHasSequenceReturnsTrueWhenASequenceExistsWhileExcludingAModelId(): void
     {
         $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
         NumeratorSequenceFactory::new()
@@ -327,14 +327,14 @@ class NumeratorProfileServiceTest extends TestCase
         $hasSequence = $this->numeratorProfileService->hasSequence(
             profile: $numeratorProfile,
             formattedNumber: $numeratorProfile->formattedNumber,
-            modelId: strtolower(Str::ulid()),
+            excludedModelId: strtolower(Str::ulid()),
         );
 
         $this->assertTrue($hasSequence);
     }
 
     #[Test]
-    public function testItCanHasNotSequenceWithModelId(): void
+    public function testHasSequenceReturnsFalseWhenASequenceDoesNotExistWhileExcludingAModelId(): void
     {
         $modelId = strtolower(Str::ulid());
 
@@ -349,7 +349,7 @@ class NumeratorProfileServiceTest extends TestCase
         $hasSequence = $this->numeratorProfileService->hasSequence(
             profile: $numeratorProfile,
             formattedNumber: $numeratorProfile->formattedNumber,
-            modelId: $modelId,
+            excludedModelId: $modelId,
         );
 
         $this->assertFalse($hasSequence);

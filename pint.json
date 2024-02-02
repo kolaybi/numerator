@@ -83,7 +83,9 @@
     "encoding": true,
     "explicit_string_variable": true,
     "full_opening_tag": true,
-    "fully_qualified_strict_types": true,
+    "fully_qualified_strict_types": {
+      "import_symbols": true
+    },
     "function_declaration": {
       "closure_fn_spacing": "none",
       "closure_function_spacing": "one",

@@ -1,6 +1,7 @@
 {
   "name": "kolaybi/numerator",
   "description": "This package produces a sequential number",
+  "keywords": ["numerator", "laravel", "kolaybi"],
   "license": "MIT",
   "type": "library",
   "support": {

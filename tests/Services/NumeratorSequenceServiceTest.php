@@ -126,7 +126,7 @@ class NumeratorSequenceServiceTest extends TestCase
      * @throws OutOfBoundsException
      */
     #[Test]
-    public function testItCanThrowsNumberWithThisFormatExistsExceptionWhileCreating()
+    public function testThrowsNumberWithThisFormatExistsExceptionForAnExistingValueWhileCreating()
     {
         $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
         NumeratorSequenceFactory::new()
@@ -152,7 +152,7 @@ class NumeratorSequenceServiceTest extends TestCase
      * @throws OutOfBoundsException
      */
     #[Test]
-    public function testItCanThrowsOutOfBoundsExceptionForMinValueWhileCreating()
+    public function testThrowsOutOfBoundsExceptionForAMinValueWhileCreating()
     {
         $numeratorType = NumeratorTypeFactory::new()->createOne([
             'min' => 10,
@@ -175,7 +175,7 @@ class NumeratorSequenceServiceTest extends TestCase
      * @throws OutOfBoundsException
      */
     #[Test]
-    public function testItCanThrowsOutOfBoundsExceptionForMaxValueWhileCreating()
+    public function testThrowsOutOfBoundsExceptionForAMaxValueWhileCreating()
     {
         $numeratorType = NumeratorTypeFactory::new()->createOne([
             'max' => 101,
@@ -194,7 +194,7 @@ class NumeratorSequenceServiceTest extends TestCase
     }
 
     #[Test]
-    public function testItCanDeleteANumeratorType(): void
+    public function testItCanDeleteNumeratorSequence(): void
     {
         $numeratorSequence = NumeratorSequenceFactory::new()->withRequired()->createOne();
 
@@ -204,7 +204,7 @@ class NumeratorSequenceServiceTest extends TestCase
     }
 
     #[Test]
-    public function testItCanFindNumeratorTypeSequence(): void
+    public function testItCanFindNumeratorSequence(): void
     {
         $numeratorSequence = NumeratorSequenceFactory::new()->withRequired()->createOne();
 
@@ -214,7 +214,7 @@ class NumeratorSequenceServiceTest extends TestCase
     }
 
     #[Test]
-    public function testItCanFindNumeratorTypeSequenceWithLock(): void
+    public function testItCanFindNumeratorSequenceWithLock(): void
     {
         $numeratorSequence = NumeratorSequenceFactory::new()->withRequired()->createOne();
 
@@ -224,7 +224,7 @@ class NumeratorSequenceServiceTest extends TestCase
     }
 
     #[Test]
-    public function testItCanFindNumeratorTypeSequenceWithId(): void
+    public function testItCanFindNumeratorSequenceWithId(): void
     {
         $numeratorSequence = NumeratorSequenceFactory::new()->withRequired()->createOne();
 
