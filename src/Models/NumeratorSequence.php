@@ -5,6 +5,7 @@ namespace KolayBi\Numerator\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property string $id
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class NumeratorSequence extends Model
 {
     use HasUlids;
+    use SoftDeletes;
 
     protected $table = 'numerator_sequences';
 

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Arr;
 use KolayBi\Numerator\Enums\NumeratorFormatVariable;
 use KolayBi\Numerator\Traits\TenantIdScopeTrait;
@@ -28,6 +29,7 @@ use KolayBi\Numerator\Utils\Formatter;
 class NumeratorProfile extends Model
 {
     use HasUlids;
+    use SoftDeletes;
     use TenantIdScopeTrait;
 
     protected $table = 'numerator_profiles';
