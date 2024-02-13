@@ -4,11 +4,13 @@ namespace KolayBi\Numerator\Services;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
+use KolayBi\Numerator\Exceptions\InvalidFormatException;
 use KolayBi\Numerator\Exceptions\OutOfBoundsException;
 use KolayBi\Numerator\Models\NumeratorProfile;
 use KolayBi\Numerator\Models\NumeratorType;
 use KolayBi\Numerator\Scopes\TenantIdScope;
 use KolayBi\Numerator\Utils\Formatter;
+use KolayBi\Numerator\Utils\FormatUtil;
 
 class NumeratorProfileService
 {
@@ -29,8 +31,15 @@ class NumeratorProfileService
         return $this->findNumeratorProfile($id)->load($relations);
     }
 
+    /**
+     * @throws InvalidFormatException
+     */
     public function createNumeratorProfile(string $tenantId, array $data): NumeratorProfile
     {
+        if (!FormatUtil::isValidFormat(Arr::get($data, 'format'))) {
+            throw new InvalidFormatException();
+        }
+
         $data = array_merge($data, [
             config('numerator.database.tenant_id_column') => $tenantId,
         ]);
@@ -39,13 +48,18 @@ class NumeratorProfileService
     }
 
     /**
+     * @throws InvalidFormatException
      * @throws OutOfBoundsException
      */
     public function updateNumeratorProfile(NumeratorProfile|string $profile, array $data): NumeratorProfile
     {
         $profile = $this->findNumeratorProfile($profile, lock: true);
 
-        $data = Arr::only($data, ['prefix', 'format', 'start']);
+        $data = Arr::only($data, ['prefix', 'suffix', 'format', 'pad_length', 'start']);
+
+        if (Arr::has($data, 'format') && !FormatUtil::isValidFormat(Arr::get($data, 'format'))) {
+            throw new InvalidFormatException();
+        }
 
         if ($start = Arr::get($data, 'start')) {
             if (!$this->isWithinInterval($profile->type, $start)) {
@@ -78,6 +92,9 @@ class NumeratorProfileService
         $profile->update();
     }
 
+    /**
+     * @throws InvalidFormatException
+     */
     public function attachExistingTenants(array $data): void
     {
         $tenantIdColumn = config('numerator.database.tenant_id_column');
@@ -137,7 +154,7 @@ class NumeratorProfileService
         $profile->loadMissing(['sequences', 'type']);
 
         for (; $number <= $profile->type->max; $number++) {
-            $formattedNumber = Formatter::format($profile->format, $number, $profile->prefix);
+            $formattedNumber = Formatter::format($profile->format, $number, $profile->prefix, $profile->suffix, $profile->pad_length);
 
             if ($this->hasSequence($profile, $formattedNumber)) {
                 continue;
