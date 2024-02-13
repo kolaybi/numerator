@@ -5,6 +5,7 @@ namespace KolayBi\Numerator\Tests\Models;
 use Database\Factories\NumeratorProfileFactory;
 use Database\Factories\NumeratorTypeFactory;
 use Illuminate\Database\Eloquent\Collection;
+use KolayBi\Numerator\Enums\NumeratorFormatVariable;
 use KolayBi\Numerator\Models\NumeratorProfile;
 use KolayBi\Numerator\Models\NumeratorType;
 use KolayBi\Numerator\Tests\TestCase;
@@ -44,6 +45,20 @@ class NumeratorTypeTest extends TestCase
         ]);
 
         $this->assertSame(100, $numeratorProfileTwo->max);
+    }
+
+    #[Test]
+    public function testFormatAttribute(): void
+    {
+        $numeratorProfileOne = NumeratorTypeFactory::new()->withFormat(null)->makeOne();
+
+        $this->assertSame(NumeratorFormatVariable::NUMBER->value, $numeratorProfileOne->format);
+
+        $numeratorProfileTwo = NumeratorTypeFactory::new()
+            ->withFormat([NumeratorFormatVariable::LONG_YEAR], includeNumberFormat: false)
+            ->makeOne();
+
+        $this->assertSame(NumeratorFormatVariable::LONG_YEAR->value, $numeratorProfileTwo->format);
     }
 
     #[Test]

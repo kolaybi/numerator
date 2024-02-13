@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
-use KolayBi\Numerator\Enums\NumeratorFormatVariable;
 use KolayBi\Numerator\Models\NumeratorProfile;
 use KolayBi\Numerator\Models\NumeratorType;
+use KolayBi\Numerator\Utils\FormatUtil;
 
 /**
  * @extends Factory<NumeratorProfile>
@@ -22,6 +22,8 @@ class NumeratorProfileFactory extends Factory
 
         return [
             'prefix'        => fake()->optional()->randomElement([Str::random(3)]),
+            'suffix'        => fake()->optional()->randomElement([Str::random(3)]),
+            'pad_length'    => fake()->optional()->numberBetween(0, 255),
             $tenantIdColumn => strtolower((string) Str::ulid()),
         ];
     }
@@ -40,22 +42,10 @@ class NumeratorProfileFactory extends Factory
         ]);
     }
 
-    public function withFormat(NumeratorFormatVariable|string ...$formats): static
+    public function withFormat(array $formats, bool $includeNumberFormat = true): static
     {
-        $format = NumeratorFormatVariable::NUMBER->value;
-
-        foreach ($formats as $item) {
-            if (is_string($item)) {
-                $item = NumeratorFormatVariable::tryFrom($item);
-            }
-
-            if (!is_null($item)) {
-                $format .= $item->value;
-            }
-        }
-
         return $this->state(fn(array $attributes) => [
-            'format' => $format,
+            'format' => FormatUtil::serializeFormat($formats, $includeNumberFormat),
         ]);
     }
 }

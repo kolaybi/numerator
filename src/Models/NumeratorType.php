@@ -8,12 +8,17 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use KolayBi\Numerator\Enums\NumeratorFormatVariable;
 
 /**
  * @property string $id
  * @property string $name
  * @property int    $min
  * @property int    $max
+ * @property string $prefix
+ * @property string $suffix
+ * @property string $format
+ * @property int    $pad_length
  *
  * @property-read Collection<NumeratorProfile> $profiles
  */
@@ -37,6 +42,13 @@ class NumeratorType extends Model
     {
         return Attribute::make(
             get: fn(mixed $value) => $value ?? PHP_INT_MAX,
+        );
+    }
+
+    public function format(): Attribute
+    {
+        return Attribute::make(
+            get: fn(mixed $value) => $value ?? NumeratorFormatVariable::NUMBER->value,
         );
     }
 

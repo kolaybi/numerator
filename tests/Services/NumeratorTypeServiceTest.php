@@ -6,6 +6,8 @@ use Database\Factories\NumeratorProfileFactory;
 use Database\Factories\NumeratorSequenceFactory;
 use Database\Factories\NumeratorTypeFactory;
 use Illuminate\Support\Str;
+use KolayBi\Numerator\Enums\NumeratorFormatVariable;
+use KolayBi\Numerator\Exceptions\InvalidFormatException;
 use KolayBi\Numerator\Models\NumeratorProfile;
 use KolayBi\Numerator\Models\NumeratorSequence;
 use KolayBi\Numerator\Models\NumeratorType;
@@ -49,6 +51,9 @@ class NumeratorTypeServiceTest extends TestCase
         $this->assertTrue($result->is($numeratorType));
     }
 
+    /**
+     * @throws InvalidFormatException
+     */
     #[Test]
     public function testItCanCreateNumeratorType(): void
     {
@@ -60,6 +65,9 @@ class NumeratorTypeServiceTest extends TestCase
         $this->assertDatabaseCount(NumeratorType::getModel()->getTable(), 1);
     }
 
+    /**
+     * @throws InvalidFormatException
+     */
     #[Test]
     public function testItCanCreateNewNumeratorTypeForExistingTenants(): void
     {
@@ -73,6 +81,22 @@ class NumeratorTypeServiceTest extends TestCase
         $this->assertDatabaseCount(NumeratorType::getModel()->getTable(), 1 + 1);
 
         $this->assertCount(3, $numeratorType->profiles->toArray());
+    }
+
+    /**
+     * @throws InvalidFormatException
+     */
+    #[Test]
+    public function testItThrowsInvalidFormatExceptionWhileCreating(): void
+    {
+        $numeratorTypeData = NumeratorTypeFactory::new()
+            ->withFormat([NumeratorFormatVariable::LONG_YEAR], includeNumberFormat: false)
+            ->makeOne()
+            ->getAttributes();
+
+        $this->expectException(InvalidFormatException::class);
+
+        $this->numeratorTypeService->createNumeratorType($numeratorTypeData);
     }
 
     #[Test]
@@ -150,6 +174,9 @@ class NumeratorTypeServiceTest extends TestCase
         $this->assertTrue($result->is($numeratorType));
     }
 
+    /**
+     * @throws InvalidFormatException
+     */
     #[Test]
     public function testItCanAttachExistingNumeratorTypes(): void
     {
@@ -163,5 +190,21 @@ class NumeratorTypeServiceTest extends TestCase
         $this->assertDatabaseHas(NumeratorProfile::getModel()->getTable(), [
             config('numerator.database.tenant_id_column') => $tenantId,
         ]);
+    }
+
+    /**
+     * @throws InvalidFormatException
+     */
+    #[Test]
+    public function testItThrowsInvalidFormatExceptionWhileAttachExistingNumeratorTypes(): void
+    {
+        $tenantId = strtolower(Str::ulid());
+        NumeratorTypeFactory::times(3)
+            ->withFormat([NumeratorFormatVariable::LONG_YEAR], includeNumberFormat: false)
+            ->create();
+
+        $this->expectException(InvalidFormatException::class);
+
+        $this->numeratorTypeService->attachExistingNumeratorTypes($tenantId);
     }
 }

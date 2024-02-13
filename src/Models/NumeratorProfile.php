@@ -18,7 +18,9 @@ use KolayBi\Numerator\Utils\Formatter;
  * @property string $id
  * @property string $type_id
  * @property string $prefix
+ * @property string $suffix
  * @property string $format
+ * @property int    $pad_length
  * @property int    $start
  * @property int    $counter
  *
@@ -47,6 +49,8 @@ class NumeratorProfile extends Model
                 Arr::get($attributes, 'format'),
                 Arr::get($attributes, 'counter'),
                 Arr::get($attributes, 'prefix'),
+                Arr::get($attributes, 'suffix'),
+                Arr::get($attributes, 'pad_length'),
             ),
         );
     }

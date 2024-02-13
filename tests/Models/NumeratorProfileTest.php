@@ -23,7 +23,7 @@ class NumeratorProfileTest extends TestCase
     {
         $numeratorProfile = NumeratorProfileFactory::new()
             ->withRequired()
-            ->withFormat(NumeratorFormatVariable::LONG_YEAR, NumeratorFormatVariable::LONG_MONTH)
+            ->withFormat([NumeratorFormatVariable::LONG_YEAR, NumeratorFormatVariable::LONG_MONTH])
             ->makeOne();
 
         $this->assertSame(
@@ -31,6 +31,8 @@ class NumeratorProfileTest extends TestCase
                 format: $numeratorProfile->format,
                 number: $numeratorProfile->counter,
                 prefix: $numeratorProfile->prefix,
+                suffix: $numeratorProfile->suffix,
+                padLength: $numeratorProfile->pad_length,
             ),
             $numeratorProfile->formattedNumber,
         );

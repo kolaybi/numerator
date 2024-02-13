@@ -8,6 +8,7 @@ use Database\Factories\NumeratorTypeFactory;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use KolayBi\Numerator\Enums\NumeratorFormatVariable;
+use KolayBi\Numerator\Exceptions\InvalidFormatException;
 use KolayBi\Numerator\Exceptions\OutOfBoundsException;
 use KolayBi\Numerator\Models\NumeratorProfile;
 use KolayBi\Numerator\Models\NumeratorSequence;
@@ -55,6 +56,9 @@ class NumeratorProfileServiceTest extends TestCase
         $this->assertTrue($result->is($numeratorProfile));
     }
 
+    /**
+     * @throws InvalidFormatException
+     */
     #[Test]
     public function testItCanCreateNumeratorProfile(): void
     {
@@ -70,6 +74,27 @@ class NumeratorProfileServiceTest extends TestCase
     }
 
     /**
+     * @throws InvalidFormatException
+     */
+    #[Test]
+    public function testItThrowsInvalidFormatExceptionWhileCreating(): void
+    {
+        $numeratorProfileData = NumeratorProfileFactory::new()
+            ->withRequired()
+            ->withFormat([NumeratorFormatVariable::LONG_YEAR], includeNumberFormat: false)
+            ->makeOne()
+            ->getAttributes();
+
+        $this->expectException(InvalidFormatException::class);
+
+        $this->numeratorProfileService->createNumeratorProfile(
+            tenantId: $numeratorProfileData[$this->tenantIdColumn],
+            data: $numeratorProfileData,
+        );
+    }
+
+    /**
+     * @throws InvalidFormatException
      * @throws OutOfBoundsException
      */
     #[Test]
@@ -88,6 +113,7 @@ class NumeratorProfileServiceTest extends TestCase
     }
 
     /**
+     * @throws InvalidFormatException
      * @throws OutOfBoundsException
      */
     #[Test]
@@ -107,6 +133,7 @@ class NumeratorProfileServiceTest extends TestCase
     }
 
     /**
+     * @throws InvalidFormatException
      * @throws OutOfBoundsException
      */
     #[Test]
@@ -120,6 +147,8 @@ class NumeratorProfileServiceTest extends TestCase
                     format: $numeratorProfile->format,
                     number: $numeratorProfile->start + 1,
                     prefix: $numeratorProfile->prefix,
+                    suffix: $numeratorProfile->suffix,
+                    padLength: $numeratorProfile->pad_length,
                 ),
             ]);
 
@@ -135,6 +164,7 @@ class NumeratorProfileServiceTest extends TestCase
     }
 
     /**
+     * @throws InvalidFormatException
      * @throws OutOfBoundsException
      */
     #[Test]
@@ -155,6 +185,7 @@ class NumeratorProfileServiceTest extends TestCase
     }
 
     /**
+     * @throws InvalidFormatException
      * @throws OutOfBoundsException
      */
     #[Test]
@@ -170,6 +201,24 @@ class NumeratorProfileServiceTest extends TestCase
         ];
 
         $this->expectException(OutOfBoundsException::class);
+
+        $this->numeratorProfileService->updateNumeratorProfile($numeratorProfile, $data);
+    }
+
+    /**
+     * @throws InvalidFormatException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testItThrowsInvalidFormatExceptionWhileUpdating(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+
+        $data = [
+            'format' => NumeratorFormatVariable::LONG_YEAR->value,
+        ];
+
+        $this->expectException(InvalidFormatException::class);
 
         $this->numeratorProfileService->updateNumeratorProfile($numeratorProfile, $data);
     }
@@ -220,6 +269,9 @@ class NumeratorProfileServiceTest extends TestCase
         $this->numeratorProfileService->advanceCounter($numeratorProfile, number: $numeratorType->max + 1);
     }
 
+    /**
+     * @throws InvalidFormatException
+     */
     #[Test]
     public function testItCanAttachExistingTenants(): void
     {
@@ -229,13 +281,33 @@ class NumeratorProfileServiceTest extends TestCase
 
         $this->numeratorProfileService->attachExistingTenants([
             'type_id' => $numeratorType->id,
-            'format'  => NumeratorFormatVariable::NUMBER->value,
+            'format'  => $numeratorType->format,
             'start'   => $numeratorType->min,
             'counter' => $numeratorType->min,
         ]);
 
         $this->assertDatabaseCount(NumeratorType::getModel()->getTable(), 1 + 1);
         $this->assertCount(3, $numeratorType->profiles->toArray());
+    }
+
+    /**
+     * @throws InvalidFormatException
+     */
+    #[Test]
+    public function testItThrowsInvalidFormatExceptionWhileAttachExistingTenants(): void
+    {
+        NumeratorProfileFactory::times(3)->withRequired()->create();
+
+        $numeratorType = NumeratorTypeFactory::new()->createOne();
+
+        $this->expectException(InvalidFormatException::class);
+
+        $this->numeratorProfileService->attachExistingTenants([
+            'type_id' => $numeratorType->id,
+            'format'  => NumeratorFormatVariable::LONG_YEAR->value,
+            'start'   => $numeratorType->min,
+            'counter' => $numeratorType->min,
+        ]);
     }
 
     #[Test]

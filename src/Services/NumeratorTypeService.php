@@ -3,8 +3,10 @@
 namespace KolayBi\Numerator\Services;
 
 use Illuminate\Database\Eloquent\Collection;
-use KolayBi\Numerator\Enums\NumeratorFormatVariable;
+use Illuminate\Support\Arr;
+use KolayBi\Numerator\Exceptions\InvalidFormatException;
 use KolayBi\Numerator\Models\NumeratorType;
+use KolayBi\Numerator\Utils\FormatUtil;
 
 class NumeratorTypeService
 {
@@ -21,16 +23,27 @@ class NumeratorTypeService
         return $this->findNumeratorType($id);
     }
 
+    /**
+     * @throws InvalidFormatException
+     */
     public function createNumeratorType(array $data): NumeratorType
     {
+        if (!FormatUtil::isValidFormat(Arr::get($data, 'format'), nullable: true)) {
+            throw new InvalidFormatException();
+        }
+
+        /** @var NumeratorType $numeratorType */
         $numeratorType = NumeratorType::create($data);
 
         $numeratorProfileService = new NumeratorProfileService();
         $numeratorProfileService->attachExistingTenants([
-            'type_id' => $numeratorType->id,
-            'format'  => NumeratorFormatVariable::NUMBER->value,
-            'start'   => $numeratorType->min,
-            'counter' => $numeratorType->min,
+            'type_id'    => $numeratorType->id,
+            'prefix'     => $numeratorType->prefix,
+            'suffix'     => $numeratorType->suffix,
+            'format'     => $numeratorType->format,
+            'pad_length' => $numeratorType->pad_length,
+            'start'      => $numeratorType->min,
+            'counter'    => $numeratorType->min,
         ]);
 
         return $numeratorType;
@@ -74,6 +87,9 @@ class NumeratorTypeService
         return $numeratorType;
     }
 
+    /**
+     * @throws InvalidFormatException
+     */
     public function attachExistingNumeratorTypes(string $tenantId): void
     {
         $numeratorTypes = $this->getNumeratorTypes();
@@ -81,10 +97,13 @@ class NumeratorTypeService
         $numeratorProfileService = new NumeratorProfileService();
         foreach ($numeratorTypes as $numeratorType) {
             $numeratorProfileService->createNumeratorProfile($tenantId, [
-                'type_id' => $numeratorType->id,
-                'format'  => NumeratorFormatVariable::NUMBER->value,
-                'start'   => $numeratorType->min,
-                'counter' => $numeratorType->min,
+                'type_id'    => $numeratorType->id,
+                'prefix'     => $numeratorType->prefix,
+                'suffix'     => $numeratorType->suffix,
+                'format'     => $numeratorType->format,
+                'pad_length' => $numeratorType->pad_length,
+                'start'      => $numeratorType->min,
+                'counter'    => $numeratorType->min,
             ]);
         }
     }
