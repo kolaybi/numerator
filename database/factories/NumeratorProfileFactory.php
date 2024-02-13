@@ -42,10 +42,10 @@ class NumeratorProfileFactory extends Factory
         ]);
     }
 
-    public function withFormat(array $formats, bool $exceptNumberFormat = false): static
+    public function withFormat(array $formats, bool $includeNumberFormat = true): static
     {
         return $this->state(fn(array $attributes) => [
-            'format' => FormatUtil::serializeFormat($formats, $exceptNumberFormat),
+            'format' => FormatUtil::serializeFormat($formats, $includeNumberFormat),
         ]);
     }
 }

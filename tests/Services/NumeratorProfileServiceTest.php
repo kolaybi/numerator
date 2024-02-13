@@ -81,7 +81,7 @@ class NumeratorProfileServiceTest extends TestCase
     {
         $numeratorProfileData = NumeratorProfileFactory::new()
             ->withRequired()
-            ->withFormat([NumeratorFormatVariable::LONG_YEAR], exceptNumberFormat: true)
+            ->withFormat([NumeratorFormatVariable::LONG_YEAR], includeNumberFormat: false)
             ->makeOne()
             ->getAttributes();
 

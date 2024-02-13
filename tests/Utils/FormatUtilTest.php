@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\Test;
 class FormatUtilTest extends TestCase
 {
     #[Test]
-    #[DataProvider('provideDataForTestIsValidFormat')]
+    #[DataProvider('provideDataForIsValidFormat')]
     public function testIsValidFormat(bool $expected, ?string $format, bool $nullable = false): void
     {
         $this->assertSame($expected, FormatUtil::isValidFormat($format, $nullable));
@@ -33,13 +33,13 @@ class FormatUtilTest extends TestCase
     }
 
     #[Test]
-    #[DataProvider('provideDataForTestSerializeFormat')]
-    public function testSerializeFormat(?string $expected, ?array $formats, bool $exceptNumberFormat = false): void
+    #[DataProvider('provideDataForSerializeFormat')]
+    public function testSerializeFormat(?string $expected, ?array $formats, bool $includeNumberFormat = true): void
     {
-        $this->assertSame($expected, FormatUtil::serializeFormat($formats, $exceptNumberFormat));
+        $this->assertSame($expected, FormatUtil::serializeFormat($formats, $includeNumberFormat));
     }
 
-    public static function provideDataForTestIsValidFormat(): Generator
+    public static function provideDataForIsValidFormat(): Generator
     {
         yield 'Case-1' => [false, null];
         yield 'Case-2' => [true, null, true];
@@ -51,15 +51,15 @@ class FormatUtilTest extends TestCase
         yield 'Case-8' => [true, '%MM%NUMBER%DD', true];
     }
 
-    public static function provideDataForTestSerializeFormat(): Generator
+    public static function provideDataForSerializeFormat(): Generator
     {
         yield 'Case-1' => [null, null];
         yield 'Case-2' => [null, []];
         yield 'Case-3' => ['%NUMBER', ['%NUMBER']];
         yield 'Case-4' => ['%NUMBER', [NumeratorFormatVariable::NUMBER]];
-        yield 'Case-5' => ['%NUMBER%YY', ['%NUMBER', '%YY'], true];
-        yield 'Case-6' => ['%NUMBER%YY', [NumeratorFormatVariable::NUMBER, '%YY'], true];
+        yield 'Case-5' => ['%NUMBER%YY', ['%NUMBER', '%YY'], false];
+        yield 'Case-6' => ['%NUMBER%YY', [NumeratorFormatVariable::NUMBER, '%YY'], false];
         yield 'Case-7' => ['%YYYY%NUMBER', ['%YYYY']];
-        yield 'Case-8' => ['%YYYY', ['%YYYY'], true];
+        yield 'Case-8' => ['%YYYY', ['%YYYY'], false];
     }
 }

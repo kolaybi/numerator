@@ -22,25 +22,28 @@ final class FormatUtil
         return self::serializeFormat(Arr::random(NumeratorFormatVariable::cases(), rand(0, count(NumeratorFormatVariable::cases()))));
     }
 
-    public static function serializeFormat(?array $formats, bool $exceptNumberFormat = false): ?string
+    /**
+     * @param array<NumeratorFormatVariable|string>|null $formats
+     */
+    public static function serializeFormat(?array $formats, bool $includeNumberFormat = true): ?string
     {
-        if (!empty($formats)) {
-            $format = Str::of('')->toString();
-
-            if (
-                !$exceptNumberFormat
-                && (!in_array(NumeratorFormatVariable::NUMBER->value, $formats) && !in_array(NumeratorFormatVariable::NUMBER, $formats))
-            ) {
-                $formats[] = NumeratorFormatVariable::NUMBER->value;
-            }
-
-            foreach ($formats as $item) {
-                $format .= ($item instanceof NumeratorFormatVariable) ? $item->value : $item;
-            }
-
-            return $format;
+        if (empty($formats)) {
+            return null;
         }
 
-        return null;
+        $format = Str::of('')->toString();
+
+        if (
+            $includeNumberFormat
+            && !(in_array(NumeratorFormatVariable::NUMBER->value, $formats) || in_array(NumeratorFormatVariable::NUMBER, $formats))
+        ) {
+            $formats[] = NumeratorFormatVariable::NUMBER->value;
+        }
+
+        foreach ($formats as $item) {
+            $format .= ($item instanceof NumeratorFormatVariable) ? $item->value : $item;
+        }
+
+        return $format;
     }
 }

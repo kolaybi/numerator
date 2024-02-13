@@ -90,7 +90,7 @@ class NumeratorTypeServiceTest extends TestCase
     public function testItThrowsInvalidFormatExceptionWhileCreating(): void
     {
         $numeratorTypeData = NumeratorTypeFactory::new()
-            ->withFormat([NumeratorFormatVariable::LONG_YEAR], exceptNumberFormat: true)
+            ->withFormat([NumeratorFormatVariable::LONG_YEAR], includeNumberFormat: false)
             ->makeOne()
             ->getAttributes();
 
@@ -200,7 +200,7 @@ class NumeratorTypeServiceTest extends TestCase
     {
         $tenantId = strtolower(Str::ulid());
         NumeratorTypeFactory::times(3)
-            ->withFormat([NumeratorFormatVariable::LONG_YEAR], exceptNumberFormat: true)
+            ->withFormat([NumeratorFormatVariable::LONG_YEAR], includeNumberFormat: false)
             ->create();
 
         $this->expectException(InvalidFormatException::class);

@@ -55,7 +55,7 @@ class NumeratorTypeTest extends TestCase
         $this->assertSame(NumeratorFormatVariable::NUMBER->value, $numeratorProfileOne->format);
 
         $numeratorProfileTwo = NumeratorTypeFactory::new()
-            ->withFormat([NumeratorFormatVariable::LONG_YEAR], exceptNumberFormat: true)
+            ->withFormat([NumeratorFormatVariable::LONG_YEAR], includeNumberFormat: false)
             ->makeOne();
 
         $this->assertSame(NumeratorFormatVariable::LONG_YEAR->value, $numeratorProfileTwo->format);
