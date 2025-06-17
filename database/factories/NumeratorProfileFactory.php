@@ -24,6 +24,7 @@ class NumeratorProfileFactory extends Factory
             'prefix'        => fake()->optional()->randomElement([Str::random(3)]),
             'suffix'        => fake()->optional()->randomElement([Str::random(3)]),
             'pad_length'    => fake()->optional()->numberBetween(0, 255),
+            'is_active'     => false,
             $tenantIdColumn => strtolower((string) Str::ulid()),
         ];
     }
@@ -46,6 +47,13 @@ class NumeratorProfileFactory extends Factory
     {
         return $this->state(fn(array $attributes) => [
             'format' => FormatUtil::serializeFormat($formats, $includeNumberFormat),
+        ]);
+    }
+
+    public function active(bool $isActive = true): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'is_active' => $isActive,
         ]);
     }
 }
