@@ -16,6 +16,7 @@ use KolayBi\Numerator\Utils\Formatter;
 
 /**
  * @property string $id
+ * @property bool   $is_active
  * @property string $type_id
  * @property string $prefix
  * @property string $suffix
@@ -37,10 +38,15 @@ class NumeratorProfile extends Model
     protected $table = 'numerator_profiles';
 
     protected $attributes = [
-        'format' => NumeratorFormatVariable::NUMBER->value,
+        'format'    => NumeratorFormatVariable::NUMBER->value,
+        'is_active' => false,
     ];
 
     protected $guarded = [];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 
     public function formattedNumber(): Attribute
     {
