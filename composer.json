@@ -10,9 +10,9 @@
   },
   "require": {
     "php": "^8.2",
-    "illuminate/console": "^10.39",
-    "illuminate/database": "^10.39",
-    "illuminate/support": "^10.39"
+    "illuminate/console": "^10.39 || ^11.0 || ^12.0",
+    "illuminate/database": "^10.39 || ^11.0 || ^12.0",
+    "illuminate/support": "^10.39 || ^11.0 || ^12.0"
   },
   "require-dev": {
     "laravel/legacy-factories": "^1.4",

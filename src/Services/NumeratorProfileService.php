@@ -58,7 +58,7 @@ class NumeratorProfileService
     {
         $profile = $this->findNumeratorProfile($profile, lock: true);
 
-        $data = Arr::only($data, ['prefix', 'suffix', 'format', 'pad_length', 'start']);
+        $data = Arr::only($data, ['prefix', 'suffix', 'format', 'pad_length', 'start', 'is_active']);
 
         if (Arr::has($data, 'format') && !FormatUtil::isValidFormat(Arr::get($data, 'format'))) {
             throw new InvalidFormatException();
