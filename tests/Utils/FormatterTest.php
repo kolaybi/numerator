@@ -12,8 +12,8 @@ use PHPUnit\Framework\Attributes\Test;
 #[CoversClass(Formatter::class)]
 class FormatterTest extends TestCase
 {
-    #[Test]
     #[DataProvider('provideDataForFormat')]
+    #[Test]
     public function testFormat(string $expected, ?string $prefix, ?string $suffix, ?string $format, ?int $padLength, int $number): void
     {
         $this->assertSame($expected, Formatter::format($format, $number, $prefix, $suffix, $padLength));

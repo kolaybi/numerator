@@ -13,8 +13,8 @@ use PHPUnit\Framework\Attributes\Test;
 #[CoversClass(FormatUtil::class)]
 class FormatUtilTest extends TestCase
 {
-    #[Test]
     #[DataProvider('provideDataForIsValidFormat')]
+    #[Test]
     public function testIsValidFormat(bool $expected, ?string $format, bool $nullable = false): void
     {
         $this->assertSame($expected, FormatUtil::isValidFormat($format, $nullable));
@@ -32,8 +32,8 @@ class FormatUtilTest extends TestCase
         }
     }
 
-    #[Test]
     #[DataProvider('provideDataForSerializeFormat')]
+    #[Test]
     public function testSerializeFormat(?string $expected, ?array $formats, bool $includeNumberFormat = true): void
     {
         $this->assertSame($expected, FormatUtil::serializeFormat($formats, $includeNumberFormat));
