@@ -4,6 +4,7 @@ namespace KolayBi\Numerator\Services;
 
 use Carbon\Carbon;
 use KolayBi\Numerator\Exceptions\NumberWithThisFormatExistsException;
+use KolayBi\Numerator\Exceptions\NumeratorProfileIsNotActiveException;
 use KolayBi\Numerator\Exceptions\OutOfBoundsException;
 use KolayBi\Numerator\Models\NumeratorSequence;
 
@@ -11,12 +12,17 @@ class NumeratorSequenceService
 {
     /**
      * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
      * @throws OutOfBoundsException
      */
-    public function createNumeratorSequence(string $numeratorType, string $modelType, string $modelId, string $formattedNumber): NumeratorSequence
+    public function createNumeratorSequence(string $numeratorType, string $modelType, string $modelId, string $formattedNumber, bool $skipActiveCheck = false): NumeratorSequence
     {
         $numeratorProfileService = new NumeratorProfileService();
         $profile = $numeratorProfileService->findNumeratorProfileByType($numeratorType, lock: true);
+
+        if (!$skipActiveCheck && !$profile->is_active) {
+            throw new NumeratorProfileIsNotActiveException();
+        }
 
         if (
             is_numeric($formattedNumber)

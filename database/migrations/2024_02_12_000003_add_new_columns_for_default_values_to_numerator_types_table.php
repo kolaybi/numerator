@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Schema;
 return new class () extends Migration {
     public function up(): void
     {
-        $prefixColumnLength = Config::get('numerator.database.prefix_length', 3);
-        $suffixColumnLength = Config::get('numerator.database.suffix_length', 3);
+        $prefixColumnLength = Config::get('numerator.database.prefix_length');
+        $suffixColumnLength = Config::get('numerator.database.suffix_length');
 
         Schema::table('numerator_types', function (Blueprint $table) use ($prefixColumnLength, $suffixColumnLength) {
             $table->string('prefix', $prefixColumnLength)->nullable();

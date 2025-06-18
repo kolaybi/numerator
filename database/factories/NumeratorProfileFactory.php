@@ -18,12 +18,14 @@ class NumeratorProfileFactory extends Factory
 
     public function definition(): array
     {
-        $tenantIdColumn = Config::get('numerator.database.tenant_id_column', 'tenant_id');
+        $tenantIdColumn = Config::get('numerator.database.tenant_id_column');
+        $defaultIsActiveStatus = Config::get('numerator.database.default_profile_is_active');
 
         return [
             'prefix'        => fake()->optional()->randomElement([Str::random(3)]),
             'suffix'        => fake()->optional()->randomElement([Str::random(3)]),
             'pad_length'    => fake()->optional()->numberBetween(0, 255),
+            'is_active'     => $defaultIsActiveStatus,
             $tenantIdColumn => strtolower((string) Str::ulid()),
         ];
     }
@@ -46,6 +48,13 @@ class NumeratorProfileFactory extends Factory
     {
         return $this->state(fn(array $attributes) => [
             'format' => FormatUtil::serializeFormat($formats, $includeNumberFormat),
+        ]);
+    }
+
+    public function active(bool $isActive = true): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'is_active' => $isActive,
         ]);
     }
 }

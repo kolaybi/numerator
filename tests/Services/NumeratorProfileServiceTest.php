@@ -5,6 +5,7 @@ namespace KolayBi\Numerator\Tests\Services;
 use Database\Factories\NumeratorProfileFactory;
 use Database\Factories\NumeratorSequenceFactory;
 use Database\Factories\NumeratorTypeFactory;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use KolayBi\Numerator\Enums\NumeratorFormatVariable;
@@ -29,7 +30,7 @@ class NumeratorProfileServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenantIdColumn = Config::get('numerator.database.tenant_id_column', 'tenant_id');
+        $this->tenantIdColumn = Config::get('numerator.database.tenant_id_column');
         $this->numeratorProfileService = new NumeratorProfileService();
     }
 
@@ -425,5 +426,114 @@ class NumeratorProfileServiceTest extends TestCase
         );
 
         $this->assertFalse($hasSequence);
+    }
+
+    #[Test]
+    public function testItCanGetNumeratorProfilesWithOnlyActiveTrue()
+    {
+        NumeratorProfileFactory::times(3)->withRequired()->active()->create();
+        NumeratorProfileFactory::times(2)->withRequired()->active(false)->create();
+
+        $result = $this->numeratorProfileService->getNumeratorProfiles(onlyActive: true);
+
+        $this->assertCount(3, $result->toArray());
+        foreach ($result as $profile) {
+            $this->assertTrue($profile->is_active);
+        }
+    }
+
+    #[Test]
+    public function testItCanGetNumeratorProfilesWithOnlyActiveFalse()
+    {
+        NumeratorProfileFactory::times(3)->withRequired()->active()->create();
+        NumeratorProfileFactory::times(2)->withRequired()->active(false)->create();
+
+        $result = $this->numeratorProfileService->getNumeratorProfiles(onlyActive: false);
+
+        $this->assertCount(5, $result->toArray());
+    }
+
+    #[Test]
+    public function testItCanGetNumeratorProfileWithOnlyActiveTrue(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->createOne();
+
+        $result = $this->numeratorProfileService->getNumeratorProfile($numeratorProfile->id, onlyActive: true);
+
+        $this->assertTrue($result->is($numeratorProfile));
+        $this->assertTrue($result->is_active);
+    }
+
+    #[Test]
+    public function testItCannotGetInactiveNumeratorProfileWithOnlyActiveTrue(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active(false)->createOne();
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $this->numeratorProfileService->getNumeratorProfile($numeratorProfile->id, onlyActive: true);
+    }
+
+    #[Test]
+    public function testItCanFindNumeratorProfileWithOnlyActiveTrue(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->createOne();
+
+        $result = $this->numeratorProfileService->findNumeratorProfile($numeratorProfile, onlyActive: true);
+
+        $this->assertTrue($result->is($numeratorProfile));
+        $this->assertTrue($result->is_active);
+    }
+
+    #[Test]
+    public function testItCannotFindInactiveNumeratorProfileWithOnlyActiveTrue(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active(false)->createOne();
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $this->numeratorProfileService->findNumeratorProfile($numeratorProfile, onlyActive: true);
+    }
+
+    #[Test]
+    public function testItCanFindNumeratorProfileByTypeWithOnlyActiveTrue(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->createOne();
+
+        $result = $this->numeratorProfileService->findNumeratorProfileByType($numeratorProfile->type->name, onlyActive: true);
+
+        $this->assertTrue($result->is($numeratorProfile));
+        $this->assertTrue($result->is_active);
+    }
+
+    #[Test]
+    public function testItCannotFindInactiveNumeratorProfileByTypeWithOnlyActiveTrue(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active(false)->createOne();
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $this->numeratorProfileService->findNumeratorProfileByType($numeratorProfile->type->name, onlyActive: true);
+    }
+
+    #[Test]
+    public function testItCanGetCounterWithOnlyActiveTrue(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->createOne();
+
+        $result = $this->numeratorProfileService->getCounter($numeratorProfile->type->name, onlyActive: true);
+
+        $this->assertTrue($result->is($numeratorProfile));
+        $this->assertTrue($result->is_active);
+    }
+
+    #[Test]
+    public function testItCannotGetInactiveCounterWithOnlyActiveTrue(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active(false)->createOne();
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $this->numeratorProfileService->getCounter($numeratorProfile->type->name, onlyActive: true);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace KolayBi\Numerator\Services;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use KolayBi\Numerator\Exceptions\InvalidFormatException;
@@ -17,18 +18,20 @@ class NumeratorProfileService
     /**
      * @return Collection<NumeratorProfile>
      */
-    public function getNumeratorProfiles(array $relations = []): Collection
+    public function getNumeratorProfiles(array $relations = [], bool $onlyActive = false): Collection
     {
-        $profile = NumeratorProfile::latest()->get();
+        $profile = NumeratorProfile::latest()
+            ->when($onlyActive, fn(Builder $builder) => $builder->where('is_active', '=', true))
+            ->get();
 
         $profile->load($relations);
 
         return $profile;
     }
 
-    public function getNumeratorProfile(string $id, array $relations = []): NumeratorProfile
+    public function getNumeratorProfile(string $id, array $relations = [], bool $onlyActive = false): NumeratorProfile
     {
-        return $this->findNumeratorProfile($id)->load($relations);
+        return $this->findNumeratorProfile($id, onlyActive: $onlyActive)->load($relations);
     }
 
     /**
@@ -55,7 +58,7 @@ class NumeratorProfileService
     {
         $profile = $this->findNumeratorProfile($profile, lock: true);
 
-        $data = Arr::only($data, ['prefix', 'suffix', 'format', 'pad_length', 'start']);
+        $data = Arr::only($data, ['prefix', 'suffix', 'format', 'pad_length', 'start', 'is_active']);
 
         if (Arr::has($data, 'format') && !FormatUtil::isValidFormat(Arr::get($data, 'format'))) {
             throw new InvalidFormatException();
@@ -105,32 +108,37 @@ class NumeratorProfileService
             ->each(fn($profile) => $this->createNumeratorProfile($profile->$tenantIdColumn, $data));
     }
 
-    public function findNumeratorProfile(NumeratorProfile|string $profile, ?bool $lock = null): NumeratorProfile
+    public function findNumeratorProfile(NumeratorProfile|string $profile, ?bool $lock = null, bool $onlyActive = false): NumeratorProfile
     {
         if (is_string($profile)) {
-            return NumeratorProfile::lock($lock)->findOrFail($profile);
+            return NumeratorProfile::lock($lock)
+                ->when($onlyActive, fn(Builder $builder) => $builder->where('is_active', '=', true))
+                ->findOrFail($profile);
         }
 
-        if ($profile instanceof NumeratorProfile && $lock) {
-            return NumeratorProfile::lock($lock)->findOrFail($profile->id);
+        if ($profile instanceof NumeratorProfile && ($lock || ($onlyActive && !$profile->is_active))) {
+            return NumeratorProfile::lock($lock)
+                ->when($onlyActive, fn(Builder $builder) => $builder->where('is_active', '=', true))
+                ->findOrFail($profile->id);
         }
 
         return $profile;
     }
 
-    public function findNumeratorProfileByType(string $type, ?bool $lock = null): NumeratorProfile
+    public function findNumeratorProfileByType(string $type, ?bool $lock = null, bool $onlyActive = false): NumeratorProfile
     {
         $numeratorTypeService = new NumeratorTypeService();
         $numeratorType = $numeratorTypeService->findNumeratorTypeByName($type);
 
         return NumeratorProfile::lock($lock)
             ->where('type_id', '=', $numeratorType->id)
+            ->when($onlyActive, fn(Builder $builder) => $builder->where('is_active', '=', true))
             ->firstOrFail();
     }
 
-    public function getCounter(string $type): NumeratorProfile
+    public function getCounter(string $type, bool $onlyActive = false): NumeratorProfile
     {
-        return $this->findNumeratorProfileByType($type);
+        return $this->findNumeratorProfileByType($type, onlyActive: $onlyActive);
     }
 
     public function hasSequence(NumeratorProfile $profile, string $formattedNumber, ?string $excludedModelId = null): bool

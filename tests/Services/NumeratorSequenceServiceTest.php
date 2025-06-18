@@ -8,6 +8,7 @@ use Database\Factories\NumeratorSequenceFactory;
 use Database\Factories\NumeratorTypeFactory;
 use Illuminate\Support\Str;
 use KolayBi\Numerator\Exceptions\NumberWithThisFormatExistsException;
+use KolayBi\Numerator\Exceptions\NumeratorProfileIsNotActiveException;
 use KolayBi\Numerator\Exceptions\OutOfBoundsException;
 use KolayBi\Numerator\Models\NumeratorSequence;
 use KolayBi\Numerator\Services\NumeratorSequenceService;
@@ -30,12 +31,13 @@ class NumeratorSequenceServiceTest extends TestCase
 
     /**
      * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
      * @throws OutOfBoundsException
      */
     #[Test]
     public function testItCanCreateNumeratorSequenceWithADifferentNumber()
     {
-        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->createOne();
 
         $counter = $numeratorProfile->counter;
         $formattedNumber = Formatter::format(
@@ -61,12 +63,13 @@ class NumeratorSequenceServiceTest extends TestCase
 
     /**
      * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
      * @throws OutOfBoundsException
      */
     #[Test]
     public function testItCanCreateNumeratorSequenceWithNextNumber()
     {
-        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->createOne();
 
         $counter = $numeratorProfile->counter;
         $formattedNumber = $numeratorProfile->formattedNumber;
@@ -88,6 +91,7 @@ class NumeratorSequenceServiceTest extends TestCase
 
     /**
      * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
      * @throws OutOfBoundsException
      */
     #[Test]
@@ -96,7 +100,7 @@ class NumeratorSequenceServiceTest extends TestCase
         $modelType = fake()->word();
         $modelId = strtolower(Str::ulid());
 
-        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->createOne();
         NumeratorSequenceFactory::new()
             ->for($numeratorProfile, 'profile')
             ->createOne([
@@ -123,12 +127,13 @@ class NumeratorSequenceServiceTest extends TestCase
 
     /**
      * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
      * @throws OutOfBoundsException
      */
     #[Test]
     public function testThrowsNumberWithThisFormatExistsExceptionForAnExistingValueWhileCreating()
     {
-        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->createOne();
         NumeratorSequenceFactory::new()
             ->for($numeratorProfile, 'profile')
             ->createOne([
@@ -149,6 +154,7 @@ class NumeratorSequenceServiceTest extends TestCase
 
     /**
      * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
      * @throws OutOfBoundsException
      */
     #[Test]
@@ -158,7 +164,7 @@ class NumeratorSequenceServiceTest extends TestCase
             'min' => 10,
         ]);
 
-        $numeratorProfile = NumeratorProfileFactory::new()->withType($numeratorType)->createOne();
+        $numeratorProfile = NumeratorProfileFactory::new()->withType($numeratorType)->active()->createOne();
 
         $this->expectException(OutOfBoundsException::class);
 
@@ -172,6 +178,7 @@ class NumeratorSequenceServiceTest extends TestCase
 
     /**
      * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
      * @throws OutOfBoundsException
      */
     #[Test]
@@ -181,7 +188,7 @@ class NumeratorSequenceServiceTest extends TestCase
             'max' => 101,
         ]);
 
-        $numeratorProfile = NumeratorProfileFactory::new()->withType($numeratorType)->createOne();
+        $numeratorProfile = NumeratorProfileFactory::new()->withType($numeratorType)->active()->createOne();
 
         $this->expectException(OutOfBoundsException::class);
 
@@ -231,5 +238,93 @@ class NumeratorSequenceServiceTest extends TestCase
         $result = $this->numeratorSequenceService->findNumeratorSequence($numeratorSequence->id);
 
         $this->assertTrue($result->is($numeratorSequence));
+    }
+
+    /**
+     * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testThrowsNumeratorProfileIsNotActiveExceptionWhenProfileIsInactive()
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active(false)->createOne();
+
+        $this->expectException(NumeratorProfileIsNotActiveException::class);
+
+        $this->numeratorSequenceService->createNumeratorSequence(
+            numeratorType: $numeratorProfile->type->name,
+            modelType: fake()->word(),
+            modelId: strtolower(Str::ulid()),
+            formattedNumber: $numeratorProfile->formattedNumber,
+        );
+    }
+
+    /**
+     * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testItCanCreateNumeratorSequenceWithInactiveProfileWhenSkipActiveCheckIsTrue()
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active(false)->createOne();
+
+        $result = $this->numeratorSequenceService->createNumeratorSequence(
+            numeratorType: $numeratorProfile->type->name,
+            modelType: fake()->word(),
+            modelId: strtolower(Str::ulid()),
+            formattedNumber: $numeratorProfile->formattedNumber,
+            skipActiveCheck: true,
+        );
+
+        $this->assertDatabaseCount(NumeratorSequence::getModel()->getTable(), 1);
+        $this->assertDatabaseHas(NumeratorSequence::getModel()->getTable(), $result->getAttributes());
+        $this->assertSame($numeratorProfile->formattedNumber, $result->formatted_number);
+    }
+
+    /**
+     * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testItAdvancesCounterWhenCreatingSequenceWithActiveProfile()
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->createOne();
+        $counter = $numeratorProfile->counter;
+
+        $this->numeratorSequenceService->createNumeratorSequence(
+            numeratorType: $numeratorProfile->type->name,
+            modelType: fake()->word(),
+            modelId: strtolower(Str::ulid()),
+            formattedNumber: $numeratorProfile->formattedNumber,
+        );
+
+        $numeratorProfile->refresh();
+        $this->assertSame($counter + 1, $numeratorProfile->counter);
+    }
+
+    /**
+     * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testItAdvancesCounterWhenCreatingSequenceWithInactiveProfileAndSkipActiveCheck()
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active(false)->createOne();
+        $counter = $numeratorProfile->counter;
+
+        $this->numeratorSequenceService->createNumeratorSequence(
+            numeratorType: $numeratorProfile->type->name,
+            modelType: fake()->word(),
+            modelId: strtolower(Str::ulid()),
+            formattedNumber: $numeratorProfile->formattedNumber,
+            skipActiveCheck: true,
+        );
+
+        $numeratorProfile->refresh();
+        $this->assertSame($counter + 1, $numeratorProfile->counter);
     }
 }

@@ -9,8 +9,8 @@ use KolayBi\Numerator\Enums\NumeratorFormatVariable;
 return new class () extends Migration {
     public function up(): void
     {
-        $tenantIdColumn = Config::get('numerator.database.tenant_id_column', 'tenant_id');
-        $prefixColumnLength = Config::get('numerator.database.prefix_length', 3);
+        $tenantIdColumn = Config::get('numerator.database.tenant_id_column');
+        $prefixColumnLength = Config::get('numerator.database.prefix_length');
 
         Schema::create('numerator_profiles', function (Blueprint $table) use ($tenantIdColumn, $prefixColumnLength) {
             $table->ulid('id')->primary();

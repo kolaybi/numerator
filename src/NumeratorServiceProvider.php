@@ -21,7 +21,7 @@ class NumeratorServiceProvider extends ServiceProvider
     private function bootConfig(): void
     {
         $this->publishes([
-            __DIR__ . '/../config/numerator.php' => $this->app->configPath('numerator.php'),
+            __DIR__ . '/../config/numerator.php' => $this->app->configPath('kolaybi/numerator.php'),
         ], 'numerator-config');
     }
 
@@ -39,7 +39,7 @@ class NumeratorServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__ . '/../lang', 'numerator');
 
         $this->publishes([
-            __DIR__ . '/../lang' => $this->app->langPath('vendor/numerator'),
+            __DIR__ . '/../lang' => $this->app->langPath('vendor/kolaybi/numerator'),
         ], 'numerator-lang');
     }
 }
