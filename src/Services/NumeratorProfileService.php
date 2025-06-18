@@ -105,7 +105,7 @@ class NumeratorProfileService
         NumeratorProfile::withoutGlobalScope(TenantIdScope::class)
             ->get($tenantIdColumn)
             ->unique($tenantIdColumn)
-            ->each(fn($profile) => $this->createNumeratorProfile($profile->$tenantIdColumn, $data));
+            ->each(fn($profile) => $this->createNumeratorProfile($profile->{$tenantIdColumn}, $data));
     }
 
     public function findNumeratorProfile(NumeratorProfile|string $profile, ?bool $lock = null, bool $onlyActive = false): NumeratorProfile

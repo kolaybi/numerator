@@ -16,7 +16,7 @@
   },
   "require-dev": {
     "laravel/legacy-factories": "^1.4",
-    "laravel/pint": "^1.13",
+    "laravel/pint": "^1.22.1",
     "orchestra/testbench": "^8.19",
     "phpunit/phpunit": "^10.5"
   },
