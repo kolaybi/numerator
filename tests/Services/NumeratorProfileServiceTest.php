@@ -30,7 +30,7 @@ class NumeratorProfileServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenantIdColumn = Config::get('numerator.database.tenant_id_column', 'tenant_id');
+        $this->tenantIdColumn = Config::get('numerator.database.tenant_id_column');
         $this->numeratorProfileService = new NumeratorProfileService();
     }
 
@@ -443,7 +443,7 @@ class NumeratorProfileServiceTest extends TestCase
     }
 
     #[Test]
-    public function testItCanGetNumeratorProfilesWithOnlyActivesFalse()
+    public function testItCanGetNumeratorProfilesWithOnlyActiveFalse()
     {
         NumeratorProfileFactory::times(3)->withRequired()->active()->create();
         NumeratorProfileFactory::times(2)->withRequired()->active(false)->create();

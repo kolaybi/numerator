@@ -18,8 +18,8 @@ class NumeratorProfileFactory extends Factory
 
     public function definition(): array
     {
-        $tenantIdColumn = Config::get('numerator.database.tenant_id_column', 'tenant_id');
-        $defaultIsActiveStatus = (bool) Config::get('numerator.database.default_profile_is_active', false);
+        $tenantIdColumn = Config::get('numerator.database.tenant_id_column');
+        $defaultIsActiveStatus = Config::get('numerator.database.default_profile_is_active');
 
         return [
             'prefix'        => fake()->optional()->randomElement([Str::random(3)]),

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
 return new class () extends Migration {
     public function up(): void
     {
-        $defaultIsActiveStatus = (bool) Config::get('numerator.database.default_profile_is_active', false);
+        $defaultIsActiveStatus = Config::get('numerator.database.default_profile_is_active');
 
         Schema::table('numerator_profiles', function (Blueprint $table) use ($defaultIsActiveStatus) {
             $table->boolean('is_active')->default($defaultIsActiveStatus)->after('type_id');

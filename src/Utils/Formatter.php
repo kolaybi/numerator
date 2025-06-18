@@ -11,8 +11,8 @@ class Formatter
 {
     public static function format(string $format, int $number, ?string $prefix = null, ?string $suffix = null, ?int $padLength = 0): string
     {
-        $prefixSeparator = Config::get('numerator.database.prefix_separator', '-');
-        $suffixSeparator = Config::get('numerator.database.suffix_separator', '-');
+        $prefixSeparator = Config::get('numerator.database.prefix_separator');
+        $suffixSeparator = Config::get('numerator.database.suffix_separator');
         $currentDate = Carbon::now();
 
         $formatVariables = [

@@ -75,7 +75,7 @@ class NumeratorProfile extends Model
     {
         static::creating(function (NumeratorProfile $model) {
             if (!isset($model->is_active)) {
-                $model->is_active = Config::get('numerator.database.default_profile_is_active', false);
+                $model->is_active = Config::get('numerator.database.default_profile_is_active');
             }
         });
     }
