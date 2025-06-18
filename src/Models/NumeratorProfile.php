@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Config;
 use KolayBi\Numerator\Enums\NumeratorFormatVariable;
 use KolayBi\Numerator\Traits\TenantIdScopeTrait;
 use KolayBi\Numerator\Utils\Formatter;
@@ -38,8 +39,7 @@ class NumeratorProfile extends Model
     protected $table = 'numerator_profiles';
 
     protected $attributes = [
-        'format'    => NumeratorFormatVariable::NUMBER->value,
-        'is_active' => false,
+        'format' => NumeratorFormatVariable::NUMBER->value,
     ];
 
     protected $guarded = [];
@@ -69,5 +69,14 @@ class NumeratorProfile extends Model
     public function sequences(): HasMany
     {
         return $this->hasMany(NumeratorSequence::class, 'profile_id', 'id');
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (NumeratorProfile $model) {
+            if (!isset($model->is_active)) {
+                $model->is_active = Config::get('numerator.database.default_profile_is_active', false);
+            }
+        });
     }
 }
