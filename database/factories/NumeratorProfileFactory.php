@@ -57,4 +57,11 @@ class NumeratorProfileFactory extends Factory
             'is_active' => $isActive,
         ]);
     }
+
+    public function withReuse(bool $reuse = true): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'reuse_if_deleted' => $reuse,
+        ]);
+    }
 }
