@@ -13,6 +13,7 @@ use KolayBi\Numerator\Enums\NumeratorFormatVariable;
 /**
  * @property string $id
  * @property string $name
+ * @property string $group
  * @property int    $min
  * @property int    $max
  * @property string $prefix
