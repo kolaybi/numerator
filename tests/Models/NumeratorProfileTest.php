@@ -74,4 +74,36 @@ class NumeratorProfileTest extends TestCase
         $this->assertInstanceOf(NumeratorType::class, $numeratorProfile->type);
         $this->assertTrue($numeratorProfile->type->is($numeratorType));
     }
+
+    #[Test]
+    public function testBootedMethodSetsDefaultIsActiveFromConfig(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->make();
+
+        unset($numeratorProfile->is_active);
+        $numeratorProfile->save();
+
+        $this->assertFalse($numeratorProfile->is_active);
+    }
+
+    #[Test]
+    public function testBootedMethodDoesNotOverrideExplicitIsActive(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->make();
+
+        $numeratorProfile->save();
+
+        $this->assertTrue($numeratorProfile->is_active);
+    }
+
+    #[Test]
+    public function testBooleanCasts(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->withReuse(false)->createOne();
+
+        $this->assertIsBool($numeratorProfile->is_active);
+        $this->assertIsBool($numeratorProfile->reuse_if_deleted);
+        $this->assertTrue($numeratorProfile->is_active);
+        $this->assertFalse($numeratorProfile->reuse_if_deleted);
+    }
 }

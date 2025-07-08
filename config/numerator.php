@@ -8,7 +8,8 @@ return [
         'suffix_length'    => (int) env('NUMERATOR_SUFFIX_LENGTH', 3),
         'suffix_separator' => env('NUMERATOR_SUFFIX_SEPARATOR', '-'),
 
-        'default_profile_is_active' => (bool) env('NUMERATOR_DEFAULT_PROFILE_IS_ACTIVE', false),
+        'default_profile_is_active'     => (bool) env('NUMERATOR_DEFAULT_PROFILE_IS_ACTIVE', false),
+        'default_reuse_if_deleted'      => (bool) env('NUMERATOR_DEFAULT_REUSE_IF_DELETED', false),
 
         'tenant_id_column' => env('NUMERATOR_TENANT_ID_COLUMN', 'tenant_id'),
     ],
