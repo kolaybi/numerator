@@ -143,10 +143,40 @@ class NumeratorProfileService
 
     public function hasSequence(NumeratorProfile $profile, string $formattedNumber, ?string $excludedModelId = null): bool
     {
-        return $profile->sequences
-            ->when(!is_null($excludedModelId), fn(Collection $builder) => $builder->where('model_id', '<>', $excludedModelId))
-            ->where('formatted_number', '=', $formattedNumber)
-            ->isNotEmpty();
+        $query = $profile->sequences()
+            ->withTrashed()
+            ->where('formatted_number', '=', $formattedNumber);
+
+        if (!is_null($excludedModelId)) {
+            $query->where('model_id', '<>', $excludedModelId);
+        }
+
+        return $query->exists();
+    }
+
+    public function hasActiveSequence(NumeratorProfile $profile, string $formattedNumber, ?string $excludedModelId = null): bool
+    {
+        $query = $profile->sequences()
+            ->where('formatted_number', '=', $formattedNumber);
+
+        if (!is_null($excludedModelId)) {
+            $query->where('model_id', '<>', $excludedModelId);
+        }
+
+        return $query->exists();
+    }
+
+    public function hasDeletedSequence(NumeratorProfile $profile, string $formattedNumber, ?string $excludedModelId = null): bool
+    {
+        $query = $profile->sequences()
+            ->onlyTrashed()
+            ->where('formatted_number', '=', $formattedNumber);
+
+        if (!is_null($excludedModelId)) {
+            $query->where('model_id', '<>', $excludedModelId);
+        }
+
+        return $query->exists();
     }
 
     public function isWithinInterval(NumeratorType $type, int $startNumber): bool
@@ -159,16 +189,21 @@ class NumeratorProfileService
      */
     private function getNextAvailableNumber(NumeratorProfile $profile, int $number): int
     {
-        $profile->loadMissing(['sequences', 'type']);
+        $profile->loadMissing(['type']);
+
+        $sequencesQuery = $profile->sequences();
+        if (!$profile->reuse_if_deleted) {
+            $sequencesQuery->withTrashed();
+        }
+
+        $usedNumbers = array_flip($sequencesQuery->pluck('formatted_number')->toArray());
 
         for (; $number <= $profile->type->max; $number++) {
             $formattedNumber = Formatter::format($profile->format, $number, $profile->prefix, $profile->suffix, $profile->pad_length);
 
-            if ($this->hasSequence($profile, $formattedNumber)) {
-                continue;
+            if (!isset($usedNumbers[$formattedNumber])) {
+                return $number;
             }
-
-            return $number;
         }
 
         throw new OutOfBoundsException();

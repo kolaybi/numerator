@@ -31,8 +31,14 @@ class NumeratorSequenceService
             throw new OutOfBoundsException();
         }
 
-        if ($numeratorProfileService->hasSequence($profile, $formattedNumber, excludedModelId: $modelId)) {
-            throw new NumberWithThisFormatExistsException();
+        if ($profile->reuse_if_deleted) {
+            if ($numeratorProfileService->hasActiveSequence($profile, $formattedNumber, excludedModelId: $modelId)) {
+                throw new NumberWithThisFormatExistsException();
+            }
+        } else {
+            if ($numeratorProfileService->hasSequence($profile, $formattedNumber, excludedModelId: $modelId)) {
+                throw new NumberWithThisFormatExistsException();
+            }
         }
 
         /** @var NumeratorSequence $sequence */
