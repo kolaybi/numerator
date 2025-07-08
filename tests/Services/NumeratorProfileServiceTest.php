@@ -536,4 +536,291 @@ class NumeratorProfileServiceTest extends TestCase
 
         $this->numeratorProfileService->getCounter($numeratorProfile->type->name, onlyActive: true);
     }
+
+    #[Test]
+    public function testHasActiveSequenceReturnsTrueWhenActiveSequenceExists(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+        NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+
+        $hasActiveSequence = $this->numeratorProfileService->hasActiveSequence($numeratorProfile, $numeratorProfile->formattedNumber);
+
+        $this->assertTrue($hasActiveSequence);
+    }
+
+    #[Test]
+    public function testHasActiveSequenceReturnsFalseWhenOnlyDeletedSequenceExists(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+        $sequence = NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+        $sequence->delete();
+
+        $hasActiveSequence = $this->numeratorProfileService->hasActiveSequence($numeratorProfile, $numeratorProfile->formattedNumber);
+
+        $this->assertFalse($hasActiveSequence);
+    }
+
+    #[Test]
+    public function testHasDeletedSequenceReturnsTrueWhenDeletedSequenceExists(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+        $sequence = NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+        $sequence->delete();
+
+        $hasDeletedSequence = $this->numeratorProfileService->hasDeletedSequence($numeratorProfile, $numeratorProfile->formattedNumber);
+
+        $this->assertTrue($hasDeletedSequence);
+    }
+
+    #[Test]
+    public function testHasDeletedSequenceReturnsFalseWhenOnlyActiveSequenceExists(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+        NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+
+        $hasDeletedSequence = $this->numeratorProfileService->hasDeletedSequence($numeratorProfile, $numeratorProfile->formattedNumber);
+
+        $this->assertFalse($hasDeletedSequence);
+    }
+
+    #[Test]
+    public function testHasSequenceReturnsTrueForBothActiveAndDeletedSequences(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+        NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+
+        $deletedSequence = NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => 'DEL-001',
+            ]);
+        $deletedSequence->delete();
+
+        $hasActiveSequence = $this->numeratorProfileService->hasSequence($numeratorProfile, $numeratorProfile->formattedNumber);
+        $hasDeletedSequence = $this->numeratorProfileService->hasSequence($numeratorProfile, 'DEL-001');
+
+        $this->assertTrue($hasActiveSequence);
+        $this->assertTrue($hasDeletedSequence);
+    }
+
+    /**
+     * @throws InvalidFormatException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testUpdateNumeratorProfileWithIsActiveField(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active(false)->createOne();
+
+        $data = [
+            'is_active' => true,
+        ];
+
+        $updatedNumeratorProfile = $this->numeratorProfileService->updateNumeratorProfile($numeratorProfile, $data);
+
+        $this->assertTrue($updatedNumeratorProfile->is_active);
+    }
+
+    /**
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testGetNextAvailableNumberWhenAllNumbersUsed(): void
+    {
+        $numeratorType = NumeratorTypeFactory::new()->createOne([
+            'min' => 1,
+            'max' => 2,
+        ]);
+
+        $numeratorProfile = NumeratorProfileFactory::new()->withType($numeratorType)->createOne([
+            'counter' => 1,
+        ]);
+
+        NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => Formatter::format($numeratorProfile->format, 1, $numeratorProfile->prefix, $numeratorProfile->suffix, $numeratorProfile->pad_length),
+            ]);
+
+        NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => Formatter::format($numeratorProfile->format, 2, $numeratorProfile->prefix, $numeratorProfile->suffix, $numeratorProfile->pad_length),
+            ]);
+
+        $this->expectException(OutOfBoundsException::class);
+
+        $this->numeratorProfileService->advanceCounter($numeratorProfile, 1);
+    }
+
+    #[Test]
+    public function testDeleteNumeratorSequencesCallsSequenceService(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+
+        NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->count(3)
+            ->create();
+
+        $numeratorProfile->refresh();
+        $initialSequenceCount = $numeratorProfile->sequences->count();
+
+        $this->assertEquals(3, $initialSequenceCount);
+
+        $this->numeratorProfileService->deleteNumeratorProfile($numeratorProfile);
+
+        $this->assertSoftDeleted(NumeratorProfile::getModel()->getTable(), ['id' => $numeratorProfile->id]);
+
+        $remainingSequences = NumeratorSequence::where('profile_id', $numeratorProfile->id)->count();
+        $this->assertEquals(0, $remainingSequences);
+    }
+
+    #[Test]
+    public function testGetNumeratorProfilesWithRelations(): void
+    {
+        NumeratorProfileFactory::new()->withRequired()->createOne();
+
+        $result = $this->numeratorProfileService->getNumeratorProfiles(['type', 'sequences']);
+
+        $this->assertCount(1, $result);
+        $this->assertTrue($result->first()->relationLoaded('type'));
+        $this->assertTrue($result->first()->relationLoaded('sequences'));
+    }
+
+    #[Test]
+    public function testHasSequenceWithExcludedModelId(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+        $excludedModelId = strtolower(Str::ulid());
+
+        NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'model_id'         => $excludedModelId,
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+
+        $hasSequence = $this->numeratorProfileService->hasSequence(
+            $numeratorProfile,
+            $numeratorProfile->formattedNumber,
+            $excludedModelId,
+        );
+
+        $this->assertFalse($hasSequence);
+
+        $hasSequenceWithoutExclusion = $this->numeratorProfileService->hasSequence(
+            $numeratorProfile,
+            $numeratorProfile->formattedNumber,
+        );
+
+        $this->assertTrue($hasSequenceWithoutExclusion);
+    }
+
+    #[Test]
+    public function testHasActiveSequenceWithExcludedModelId(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+        $excludedModelId = strtolower(Str::ulid());
+
+        NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'model_id'         => $excludedModelId,
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+
+        $hasActiveSequence = $this->numeratorProfileService->hasActiveSequence(
+            $numeratorProfile,
+            $numeratorProfile->formattedNumber,
+            $excludedModelId,
+        );
+
+        $this->assertFalse($hasActiveSequence);
+    }
+
+    #[Test]
+    public function testHasDeletedSequenceWithExcludedModelId(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->createOne();
+        $excludedModelId = strtolower(Str::ulid());
+
+        $sequence = NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'model_id'         => $excludedModelId,
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+        $sequence->delete();
+
+        $hasDeletedSequence = $this->numeratorProfileService->hasDeletedSequence(
+            $numeratorProfile,
+            $numeratorProfile->formattedNumber,
+            $excludedModelId,
+        );
+
+        $this->assertFalse($hasDeletedSequence);
+    }
+
+    #[Test]
+    public function testGetNextAvailableNumberRespectsReuseIfDeletedFalse(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->withReuse(false)->createOne([
+            'counter' => 1,
+        ]);
+
+        $sequence = NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+        $sequence->delete();
+
+        $this->numeratorProfileService->advanceCounter($numeratorProfile, 1);
+
+        $numeratorProfile->refresh();
+
+        $this->assertEquals(2, $numeratorProfile->counter);
+    }
+
+    #[Test]
+    public function testGetNextAvailableNumberRespectsReuseIfDeletedTrue(): void
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->withReuse()->createOne([
+            'counter' => 1,
+        ]);
+
+        $sequence = NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+        $sequence->delete();
+
+        $this->numeratorProfileService->advanceCounter($numeratorProfile, 1);
+
+        $numeratorProfile->refresh();
+
+        $this->assertEquals(1, $numeratorProfile->counter);
+    }
 }

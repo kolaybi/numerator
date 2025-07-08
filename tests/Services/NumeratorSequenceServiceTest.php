@@ -327,4 +327,115 @@ class NumeratorSequenceServiceTest extends TestCase
         $numeratorProfile->refresh();
         $this->assertSame($counter + 1, $numeratorProfile->counter);
     }
+
+    /**
+     * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testItCanReuseDeletedSequenceWhenReuseIfDeletedIsTrue()
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->withReuse(true)->createOne();
+
+        $existingSequence = NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+        $existingSequence->delete();
+
+        $result = $this->numeratorSequenceService->createNumeratorSequence(
+            numeratorType: $numeratorProfile->type->name,
+            modelType: fake()->word(),
+            modelId: strtolower(Str::ulid()),
+            formattedNumber: $numeratorProfile->formattedNumber,
+        );
+
+        $this->assertDatabaseCount(NumeratorSequence::getModel()->getTable(), 2);
+        $this->assertDatabaseHas(NumeratorSequence::getModel()->getTable(), $result->getAttributes());
+        $this->assertSame($numeratorProfile->formattedNumber, $result->formatted_number);
+    }
+
+    /**
+     * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testItThrowsExceptionForDeletedSequenceWhenReuseIfDeletedIsFalse()
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->withReuse(false)->createOne();
+
+        $existingSequence = NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+        $existingSequence->delete();
+
+        $this->expectException(NumberWithThisFormatExistsException::class);
+
+        $this->numeratorSequenceService->createNumeratorSequence(
+            numeratorType: $numeratorProfile->type->name,
+            modelType: fake()->word(),
+            modelId: strtolower(Str::ulid()),
+            formattedNumber: $numeratorProfile->formattedNumber,
+        );
+    }
+
+    /**
+     * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testItThrowsExceptionForActiveSequenceRegardlessOfReuseIfDeletedSetting()
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->withReuse(true)->createOne();
+
+        NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+
+        $this->expectException(NumberWithThisFormatExistsException::class);
+
+        $this->numeratorSequenceService->createNumeratorSequence(
+            numeratorType: $numeratorProfile->type->name,
+            modelType: fake()->word(),
+            modelId: strtolower(Str::ulid()),
+            formattedNumber: $numeratorProfile->formattedNumber,
+        );
+    }
+
+    /**
+     * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testItCanReuseDeletedSequenceWithNumeratorProfileObject()
+    {
+        $numeratorProfile = NumeratorProfileFactory::new()->withRequired()->active()->withReuse(true)->createOne();
+
+        $existingSequence = NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne([
+                'formatted_number' => $numeratorProfile->formattedNumber,
+            ]);
+        $existingSequence->delete();
+
+        $result = $this->numeratorSequenceService->createNumeratorSequence(
+            numeratorType: $numeratorProfile->type->name,
+            modelType: fake()->word(),
+            modelId: strtolower(Str::ulid()),
+            formattedNumber: $numeratorProfile->formattedNumber,
+        );
+
+        $this->assertDatabaseCount(NumeratorSequence::getModel()->getTable(), 2);
+        $this->assertDatabaseHas(NumeratorSequence::getModel()->getTable(), $result->getAttributes());
+        $this->assertSame($numeratorProfile->formattedNumber, $result->formatted_number);
+    }
 }
