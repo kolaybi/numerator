@@ -4,6 +4,16 @@ All notable changes to `kolaybi/numerator` will be documented in this file.
 
 ---
 
+### v1.3.2 (2025-07-14)
+- **Enhanced Exception Handling**
+  - Assigned HTTP response codes to exception classes for better API error handling
+  - Improved error responses with appropriate status codes for different exception types
+
+### v1.3.1 (2025-07-10)
+- **Internationalization Support**
+  - Added Turkish translations for exception messages in Numerator package
+  - Enhanced multilingual support for error messaging
+
 ### v1.3.0 (2025-07-08)
 - **Added Group Support for NumeratorType**
   - Added `group` column to `numerator_types` table for better categorization
