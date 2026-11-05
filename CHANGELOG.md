@@ -4,7 +4,7 @@ All notable changes to `kolaybi/numerator` will be documented in this file.
 
 ---
 
-### v1.4.0 (2026-11-04)
+### v1.4.1 (2026-11-05)
 - **Laravel 13 Support**
   - Added `^13.0` to the supported `illuminate/*` versions
   - Widened dev dependencies to `orchestra/testbench` `^8.19 || ^9.0 || ^10.0 || ^11.0` and `phpunit/phpunit` `^10.5 || ^11.0 || ^12.0`
