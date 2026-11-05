@@ -20,6 +20,18 @@ class FormatUtilTest extends TestCase
         $this->assertSame($expected, FormatUtil::isValidFormat($format, $nullable));
     }
 
+    public static function provideDataForIsValidFormat(): Generator
+    {
+        yield 'Case-1' => [false, null];
+        yield 'Case-2' => [true, null, true];
+        yield 'Case-3' => [false, '%YYYY%MM%DD'];
+        yield 'Case-4' => [true, '%NUMBER'];
+        yield 'Case-5' => [false, '%YY-AA'];
+        yield 'Case-6' => [true, '%NUMBER-AA'];
+        yield 'Case-7' => [false, '%YYYY', true];
+        yield 'Case-8' => [true, '%MM%NUMBER%DD', true];
+    }
+
     #[Test]
     public function testGenerateRandomFormat(): void
     {
@@ -37,18 +49,6 @@ class FormatUtilTest extends TestCase
     public function testSerializeFormat(?string $expected, ?array $formats, bool $includeNumberFormat = true): void
     {
         $this->assertSame($expected, FormatUtil::serializeFormat($formats, $includeNumberFormat));
-    }
-
-    public static function provideDataForIsValidFormat(): Generator
-    {
-        yield 'Case-1' => [false, null];
-        yield 'Case-2' => [true, null, true];
-        yield 'Case-3' => [false, '%YYYY%MM%DD'];
-        yield 'Case-4' => [true, '%NUMBER'];
-        yield 'Case-5' => [false, '%YY-AA'];
-        yield 'Case-6' => [true, '%NUMBER-AA'];
-        yield 'Case-7' => [false, '%YYYY', true];
-        yield 'Case-8' => [true, '%MM%NUMBER%DD', true];
     }
 
     public static function provideDataForSerializeFormat(): Generator
