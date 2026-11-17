@@ -823,4 +823,179 @@ class NumeratorProfileServiceTest extends TestCase
 
         $this->assertEquals(1, $numeratorProfile->counter);
     }
+
+    /**
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testAdvanceCounterSkipsACaseVariantOfAUsedNumberUnderCaseInsensitiveCollation(): void
+    {
+        $this->useCaseInsensitiveFormattedNumbers();
+
+        $numeratorProfile = $this->createErProfile(counter: 7);
+        $this->createSequence($numeratorProfile, 'er-7');
+
+        $this->numeratorProfileService->advanceCounter($numeratorProfile, 7);
+
+        $this->assertSame(8, $numeratorProfile->refresh()->counter);
+    }
+
+    /**
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testAdvanceCounterKeepsACaseVariantFreeUnderCaseSensitiveCollation(): void
+    {
+        $numeratorProfile = $this->createErProfile(counter: 7);
+        $this->createSequence($numeratorProfile, 'er-7');
+
+        $this->numeratorProfileService->advanceCounter($numeratorProfile, 7);
+
+        $this->assertSame(7, $numeratorProfile->refresh()->counter);
+    }
+
+    /**
+     * @throws InvalidFormatException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testUpdatingStartRecoversACounterStuckOnACaseVariant(): void
+    {
+        $this->useCaseInsensitiveFormattedNumbers();
+
+        $numeratorProfile = $this->createErProfile(counter: 7);
+        foreach (range(1, 6) as $number) {
+            $this->createSequence($numeratorProfile, 'ER-' . $number);
+        }
+        $this->createSequence($numeratorProfile, 'er-7');
+
+        $updatedNumeratorProfile = $this->numeratorProfileService->updateNumeratorProfile($numeratorProfile, ['start' => 1]);
+
+        $this->assertSame(8, $updatedNumeratorProfile->counter);
+    }
+
+    /**
+     * @throws InvalidFormatException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testUpdatingReuseIfDeletedToFalseWithStartSkipsDeletedNumbers(): void
+    {
+        $numeratorProfile = $this->createErProfile(counter: 7);
+        foreach (range(1, 6) as $number) {
+            $this->createSequence($numeratorProfile, 'ER-' . $number);
+        }
+        $this->createSequence($numeratorProfile, 'ER-7')->delete();
+
+        $updatedNumeratorProfile = $this->numeratorProfileService->updateNumeratorProfile($numeratorProfile, [
+            'start'            => 1,
+            'reuse_if_deleted' => false,
+        ]);
+
+        $this->assertSame(8, $updatedNumeratorProfile->counter);
+    }
+
+    /**
+     * @throws InvalidFormatException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testUpdatingReuseIfDeletedToFalseWithoutStartSkipsDeletedNumbers(): void
+    {
+        $numeratorProfile = $this->createErProfile(counter: 7);
+        $this->createSequence($numeratorProfile, 'ER-7')->delete();
+
+        $updatedNumeratorProfile = $this->numeratorProfileService->updateNumeratorProfile($numeratorProfile, [
+            'reuse_if_deleted' => false,
+        ]);
+
+        $this->assertSame(8, $updatedNumeratorProfile->counter);
+    }
+
+    /**
+     * @throws InvalidFormatException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testUpdatingPrefixWithStartUsesTheNewPrefix(): void
+    {
+        $numeratorProfile = $this->createErProfile(counter: 1, prefix: 'AB');
+        $this->createSequence($numeratorProfile, 'ER-1');
+
+        $updatedNumeratorProfile = $this->numeratorProfileService->updateNumeratorProfile($numeratorProfile, [
+            'start'  => 1,
+            'prefix' => 'ER',
+        ]);
+
+        $this->assertSame(2, $updatedNumeratorProfile->counter);
+    }
+
+    /**
+     * @throws InvalidFormatException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testUpdatingPrefixWithoutStartUsesTheNewPrefix(): void
+    {
+        $numeratorProfile = $this->createErProfile(counter: 1, prefix: 'AB');
+        $this->createSequence($numeratorProfile, 'ER-1');
+
+        $updatedNumeratorProfile = $this->numeratorProfileService->updateNumeratorProfile($numeratorProfile, [
+            'prefix' => 'ER',
+        ]);
+
+        $this->assertSame(2, $updatedNumeratorProfile->counter);
+    }
+
+    /**
+     * @throws InvalidFormatException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testUpdatingUnrelatedFieldsKeepsTheCounter(): void
+    {
+        $numeratorProfile = $this->createErProfile(counter: 7);
+        $this->createSequence($numeratorProfile, 'ER-7');
+
+        $updatedNumeratorProfile = $this->numeratorProfileService->updateNumeratorProfile($numeratorProfile, [
+            'prefix'    => 'ER',
+            'is_active' => false,
+        ]);
+
+        $this->assertSame(7, $updatedNumeratorProfile->counter);
+    }
+
+    #[Test]
+    public function testGetNextAvailableNumberSearchesBeyondTheFirstCandidateChunk(): void
+    {
+        $numeratorProfile = $this->createErProfile(counter: 1);
+        foreach (range(1, 501) as $number) {
+            $this->createSequence($numeratorProfile, 'ER-' . $number);
+        }
+
+        $this->numeratorProfileService->advanceCounter($numeratorProfile, 1);
+
+        $this->assertSame(502, $numeratorProfile->refresh()->counter);
+    }
+
+    private function createErProfile(int $counter, string $prefix = 'ER'): NumeratorProfile
+    {
+        return NumeratorProfileFactory::new()
+            ->withType(NumeratorTypeFactory::new()->createOne(['min' => 1, 'max' => null]))
+            ->withReuse()
+            ->createOne([
+                'prefix'     => $prefix,
+                'suffix'     => null,
+                'pad_length' => 1,
+                'start'      => 1,
+                'counter'    => $counter,
+            ]);
+    }
+
+    private function createSequence(NumeratorProfile $numeratorProfile, string $formattedNumber): NumeratorSequence
+    {
+        return NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne(['formatted_number' => $formattedNumber]);
+    }
 }

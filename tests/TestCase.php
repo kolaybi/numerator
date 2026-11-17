@@ -5,6 +5,8 @@ namespace KolayBi\Numerator\Tests;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use KolayBi\Numerator\NumeratorServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
@@ -38,5 +40,20 @@ abstract class TestCase extends OrchestraTestCase
             'driver'   => 'sqlite',
             'database' => ':memory:',
         ]);
+    }
+
+    protected function useCaseInsensitiveFormattedNumbers(): void
+    {
+        Schema::drop('numerator_sequences');
+        DB::statement('CREATE TABLE numerator_sequences (
+            id varchar NOT NULL PRIMARY KEY,
+            created_at datetime,
+            updated_at datetime,
+            deleted_at datetime,
+            profile_id varchar NOT NULL,
+            model_type varchar NOT NULL,
+            model_id varchar NOT NULL,
+            formatted_number varchar NOT NULL COLLATE NOCASE
+        )');
     }
 }

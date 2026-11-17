@@ -4,6 +4,13 @@ All notable changes to `kolaybi/numerator` will be documented in this file.
 
 ---
 
+### v1.4.2 (2026-11-17)
+- **Counter Fixes**
+  - `getNextAvailableNumber()` now lets the database collation decide whether a number is used, matching `hasSequence()` / `hasActiveSequence()`; a manually entered case variant (e.g. `er-7` under `utf8mb4_unicode_ci`) no longer leaves the counter stuck on `ER-7`
+  - `createNumeratorSequence()` advances the counter whenever the profile's current number is taken after the save, not only on an exact match
+  - `updateNumeratorProfile()` calculates the counter with the new settings, and recalculates it when `prefix`, `suffix`, `format`, `pad_length` or `reuse_if_deleted` change without `start`
+  - Profiles stuck on a used number recover on their next settings save that sends `start`
+
 ### v1.4.1 (2026-11-05)
 - **Laravel 13 Support**
   - Added `^13.0` to the supported `illuminate/*` versions

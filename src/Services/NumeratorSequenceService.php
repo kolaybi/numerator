@@ -54,8 +54,12 @@ class NumeratorSequenceService
             ],
         );
 
-        if ($profile->formattedNumber === $formattedNumber) {
-            $numeratorProfileService->advanceCounter($profile, ++$profile->counter);
+        $isCurrentNumberUsed = $profile->reuse_if_deleted
+            ? $numeratorProfileService->hasActiveSequence($profile, $profile->formattedNumber)
+            : $numeratorProfileService->hasSequence($profile, $profile->formattedNumber);
+
+        if ($isCurrentNumberUsed) {
+            $numeratorProfileService->advanceCounter($profile, $profile->counter + 1);
         }
 
         return $sequence;
