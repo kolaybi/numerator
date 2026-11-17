@@ -4,6 +4,7 @@ namespace KolayBi\Numerator\Services;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Arr;
 use KolayBi\Numerator\Exceptions\InvalidFormatException;
 use KolayBi\Numerator\Exceptions\OutOfBoundsException;
@@ -15,6 +16,8 @@ use KolayBi\Numerator\Utils\FormatUtil;
 
 class NumeratorProfileService
 {
+    private const CANDIDATE_CHUNK_SIZE = 500;
+
     /**
      * @return Collection<NumeratorProfile>
      */
@@ -64,15 +67,21 @@ class NumeratorProfileService
             throw new InvalidFormatException();
         }
 
-        if ($start = Arr::get($data, 'start')) {
-            if (!$this->isWithinInterval($profile->type, $start)) {
-                throw new OutOfBoundsException();
-            }
+        $start = Arr::get($data, 'start');
 
-            Arr::set($data, 'counter', $this->getNextAvailableNumber($profile, $start));
+        if ($start && !$this->isWithinInterval($profile->type, $start)) {
+            throw new OutOfBoundsException();
         }
 
-        $profile->update($data);
+        $profile->fill($data);
+
+        if ($start) {
+            $profile->counter = $this->getNextAvailableNumber($profile, $start);
+        } elseif ($profile->isDirty(['prefix', 'suffix', 'format', 'pad_length', 'reuse_if_deleted'])) {
+            $profile->counter = $this->getNextAvailableNumber($profile, $profile->counter);
+        }
+
+        $profile->save();
 
         return $profile->refresh();
     }
@@ -190,23 +199,43 @@ class NumeratorProfileService
     private function getNextAvailableNumber(NumeratorProfile $profile, int $number): int
     {
         $profile->loadMissing(['type']);
+        $max = $profile->type->max;
 
-        $sequencesQuery = $profile->sequences();
-        if (!$profile->reuse_if_deleted) {
-            $sequencesQuery->withTrashed();
-        }
+        while ($number <= $max) {
+            $last = $number + min(self::CANDIDATE_CHUNK_SIZE - 1, $max - $number);
 
-        $usedNumbers = array_flip($sequencesQuery->pluck('formatted_number')->toArray());
-
-        for (; $number <= $profile->type->max; $number++) {
-            $formattedNumber = Formatter::format($profile->format, $number, $profile->prefix, $profile->suffix, $profile->pad_length);
-
-            if (!isset($usedNumbers[$formattedNumber])) {
-                return $number;
+            $candidates = [];
+            for ($candidate = $number; $candidate <= $last; $candidate++) {
+                $candidates[$candidate] = Formatter::format($profile->format, $candidate, $profile->prefix, $profile->suffix, $profile->pad_length);
             }
+
+            // The column collation decides equality (e.g. "er-7" equals "ER-7" under utf8mb4_unicode_ci), so matches PHP can't confirm are asked to the database.
+            $usedNumbers = array_flip($this->usedSequences($profile)->whereIn('formatted_number', $candidates)->pluck('formatted_number')->all());
+            $hasInexactMatches = !empty(array_diff_key($usedNumbers, array_flip($candidates)));
+
+            foreach ($candidates as $candidate => $formattedNumber) {
+                if (isset($usedNumbers[$formattedNumber])) {
+                    continue;
+                }
+
+                if (!$hasInexactMatches || !$this->usedSequences($profile)->where('formatted_number', '=', $formattedNumber)->exists()) {
+                    return $candidate;
+                }
+            }
+
+            if ($last === $max) {
+                break;
+            }
+
+            $number = $last + 1;
         }
 
         throw new OutOfBoundsException();
+    }
+
+    private function usedSequences(NumeratorProfile $profile): HasMany
+    {
+        return $profile->reuse_if_deleted ? $profile->sequences() : $profile->sequences()->withTrashed();
     }
 
     private function deleteNumeratorSequences(NumeratorProfile $numeratorProfile): void

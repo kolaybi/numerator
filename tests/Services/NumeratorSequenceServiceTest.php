@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use KolayBi\Numerator\Exceptions\NumberWithThisFormatExistsException;
 use KolayBi\Numerator\Exceptions\NumeratorProfileIsNotActiveException;
 use KolayBi\Numerator\Exceptions\OutOfBoundsException;
+use KolayBi\Numerator\Models\NumeratorProfile;
 use KolayBi\Numerator\Models\NumeratorSequence;
 use KolayBi\Numerator\Services\NumeratorSequenceService;
 use KolayBi\Numerator\Tests\TestCase;
@@ -437,5 +438,90 @@ class NumeratorSequenceServiceTest extends TestCase
         $this->assertDatabaseCount(NumeratorSequence::getModel()->getTable(), 2);
         $this->assertDatabaseHas(NumeratorSequence::getModel()->getTable(), $result->getAttributes());
         $this->assertSame($numeratorProfile->formattedNumber, $result->formatted_number);
+    }
+
+    /**
+     * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testItAdvancesCounterWhenACaseVariantOfTheCurrentNumberIsCreated(): void
+    {
+        $this->useCaseInsensitiveFormattedNumbers();
+
+        $numeratorProfile = $this->createErProfile(counter: 7);
+
+        $this->numeratorSequenceService->createNumeratorSequence(
+            numeratorType: $numeratorProfile->type->name,
+            modelType: fake()->word(),
+            modelId: strtolower(Str::ulid()),
+            formattedNumber: 'er-7',
+        );
+
+        $this->assertSame(8, $numeratorProfile->refresh()->counter);
+    }
+
+    /**
+     * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testItAdvancesCounterWhenTheCurrentNumberIsAlreadyTakenWhileCreatingAnotherNumber(): void
+    {
+        $numeratorProfile = $this->createErProfile(counter: 7);
+        NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne(['formatted_number' => 'ER-7']);
+
+        $this->numeratorSequenceService->createNumeratorSequence(
+            numeratorType: $numeratorProfile->type->name,
+            modelType: fake()->word(),
+            modelId: strtolower(Str::ulid()),
+            formattedNumber: 'ER-3',
+        );
+
+        $this->assertSame(8, $numeratorProfile->refresh()->counter);
+    }
+
+    /**
+     * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testItRejectsACaseVariantOfAnExistingNumberUnderCaseInsensitiveCollation(): void
+    {
+        $this->useCaseInsensitiveFormattedNumbers();
+
+        $numeratorProfile = $this->createErProfile(counter: 8);
+        NumeratorSequenceFactory::new()
+            ->for($numeratorProfile, 'profile')
+            ->createOne(['formatted_number' => 'er-7']);
+
+        $this->expectException(NumberWithThisFormatExistsException::class);
+
+        $this->numeratorSequenceService->createNumeratorSequence(
+            numeratorType: $numeratorProfile->type->name,
+            modelType: fake()->word(),
+            modelId: strtolower(Str::ulid()),
+            formattedNumber: 'ER-7',
+        );
+    }
+
+    private function createErProfile(int $counter): NumeratorProfile
+    {
+        return NumeratorProfileFactory::new()
+            ->withType(NumeratorTypeFactory::new()->createOne(['min' => 1, 'max' => null]))
+            ->withReuse()
+            ->active()
+            ->createOne([
+                'prefix'     => 'ER',
+                'suffix'     => null,
+                'pad_length' => 1,
+                'start'      => 1,
+                'counter'    => $counter,
+            ]);
     }
 }
