@@ -4,6 +4,11 @@ All notable changes to `kolaybi/numerator` will be documented in this file.
 
 ---
 
+### v1.4.3 (2026-11-18)
+- **Number Validation Fix**
+  - `createNumeratorSequence()` applies the type's `min` / `max` interval only to digit-only numbers; a number that merely looks numeric to PHP (e.g. `4E12026001392240`, read as scientific notation) no longer fails with a `TypeError`
+  - A digit-only number beyond the integer range is checked against the interval instead of failing with a `TypeError`
+
 ### v1.4.2 (2026-11-17)
 - **Counter Fixes**
   - `getNextAvailableNumber()` now lets the database collation decide whether a number is used, matching `hasSequence()` / `hasActiveSequence()`; a manually entered case variant (e.g. `er-7` under `utf8mb4_unicode_ci`) no longer leaves the counter stuck on `ER-7`

@@ -201,6 +201,52 @@ class NumeratorSequenceServiceTest extends TestCase
         );
     }
 
+    /**
+     * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testItCanCreateNumeratorSequenceWithANumberThatLooksLikeScientificNotation(): void
+    {
+        $numeratorType = NumeratorTypeFactory::new()->createOne();
+
+        $numeratorProfile = NumeratorProfileFactory::new()->withType($numeratorType)->active()->createOne();
+
+        $sequence = $this->numeratorSequenceService->createNumeratorSequence(
+            numeratorType: $numeratorProfile->type->name,
+            modelType: fake()->unique()->word(),
+            modelId: strtolower(Str::ulid()),
+            formattedNumber: '4E12026001392240',
+        );
+
+        $this->assertSame('4E12026001392240', $sequence->formatted_number);
+    }
+
+    /**
+     * @throws NumberWithThisFormatExistsException
+     * @throws NumeratorProfileIsNotActiveException
+     * @throws OutOfBoundsException
+     */
+    #[Test]
+    public function testThrowsOutOfBoundsExceptionForADigitOnlyNumberBeyondTheIntegerRange(): void
+    {
+        $numeratorType = NumeratorTypeFactory::new()->createOne([
+            'max' => 101,
+        ]);
+
+        $numeratorProfile = NumeratorProfileFactory::new()->withType($numeratorType)->active()->createOne();
+
+        $this->expectException(OutOfBoundsException::class);
+
+        $this->numeratorSequenceService->createNumeratorSequence(
+            numeratorType: $numeratorProfile->type->name,
+            modelType: fake()->unique()->word(),
+            modelId: strtolower(Str::ulid()),
+            formattedNumber: '99999999999999999999999',
+        );
+    }
+
     #[Test]
     public function testItCanDeleteNumeratorSequence(): void
     {
