@@ -25,8 +25,8 @@ class NumeratorSequenceService
         }
 
         if (
-            is_numeric($formattedNumber)
-            && !$numeratorProfileService->isWithinInterval($profile->type, $formattedNumber)
+            ctype_digit($formattedNumber)
+            && !$numeratorProfileService->isWithinInterval($profile->type, (int) $formattedNumber)
         ) {
             throw new OutOfBoundsException();
         }
